@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use App\Services\AuthService;
 
 class AuthController extends Controller
 {
+    protected $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -15,15 +21,10 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            $token = $user->createToken('auth_token')->plainTextToken;
+        $result = $this->authService->attemptLogin($credentials);
 
-            return response()->json([
-                'status' => 'success',
-                'token' => $token,
-                'user' => $user
-            ]);
+        if ($result) {
+            return response()->json($result);
         }
 
         return response()->json([
@@ -34,17 +35,13 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Logged out successfully'
-        ]);
+        $result = $this->authService->logout($request->user());
+        return response()->json($result);
     }
 
     public function users()
     {
-        $users = User::all();
+        $users = $this->authService->getAllUsers();
         return response()->json($users);
     }
 }
