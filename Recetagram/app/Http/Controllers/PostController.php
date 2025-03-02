@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Post;
+use App\Services\PostService;
+use Illuminate\Http\Request;
+use App\Helpers\ResponseHelper;
+use Illuminate\Support\Facades\Log;
+
+class PostController extends Controller
+{
+    protected $postService;
+
+    public function __construct(PostService $postService)
+    {
+        $this->postService = $postService;
+    }
+
+    public function index()
+    {
+        try {
+            $posts = $this->postService->getAllPosts();
+            return ResponseHelper::success($posts, 'Posts retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to retrieve posts', 500);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'ingredients' => 'required|string' // Cambiado a string para recibir JSON
+            ]);
+
+            // Decodificar los ingredientes
+            $validated['ingredients'] = json_decode($validated['ingredients'], true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid ingredients format');
+            }
+
+            Log::info('Validation passed. Request data:', $request->all());
+            
+            $post = $this->postService->createPost($validated);
+            Log::info('Post created successfully:', ['post_id' => $post->id]);
+            
+            return ResponseHelper::success($post, 'Post created successfully', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error:', $e->errors());
+            return ResponseHelper::error($e->errors(), 422);
+        } catch (\Exception $e) {
+            Log::error('Error creating post: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            return ResponseHelper::error('Failed to create post: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $post = $this->postService->getPostById($id);
+            return ResponseHelper::success($post, 'Post retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Post not found', 404);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'sometimes|required|string|max:255',
+                'description' => 'sometimes|required|string',
+                'ingredients' => 'sometimes|required|array',
+                'ingredients.*.name' => 'required_with:ingredients|string|max:255',
+                'ingredients.*.quantity' => 'required_with:ingredients|string|max:255'
+            ]);
+
+            $post = $this->postService->updatePost($id, $validated);
+            return ResponseHelper::success($post, 'Post updated successfully');
+        } catch (\Exception $e) {
+            Log::error('Error updating post: ' . $e->getMessage());
+            return ResponseHelper::error('Failed to update post', 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $this->postService->deletePost($id);
+            return ResponseHelper::success(null, 'Post deleted successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to delete post', 500);
+        }
+    }
+
+}
