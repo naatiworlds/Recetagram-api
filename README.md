@@ -15,27 +15,31 @@ API RESTful desarrollada con Laravel 10 para la gestión de recetas de cocina. E
 - Despliegue en producción
 
 ## 🚀 Estado del Proyecto
-Progreso Total: 45/100 puntos (+ 5 puntos extra posibles por HTTPS)
+Progreso Total: 50/100 puntos (+ 5 puntos extra posibles por HTTPS)
 
 ### Componentes y Puntuación
 
-#### 1. Desarrollo API RESTful (20%) - 10/20
+#### 1. Desarrollo API RESTful (20%) - 12/20
 - ✅ Estructura básica implementada
 - ✅ Endpoints versionados (v1)
-- ⚠️ Pendiente: Completar operaciones CRUD
+- ✅ Operaciones CRUD para usuarios
+- ✅ Operaciones CRUD parciales para posts
+- ⚠️ Pendiente: Completar operaciones para ingredientes
 - ⚠️ Pendiente: Optimización y caché
 
-#### 2. Base de Datos y Persistencia (15%) - 5/15
+#### 2. Base de Datos y Persistencia (15%) - 8/15
 - ✅ Conexión a base de datos establecida
-- ❌ Pendiente: Migraciones completas
-- ❌ Pendiente: Modelos y relaciones
+- ✅ Migraciones básicas implementadas
+- ✅ Modelos principales creados
+- ⚠️ Pendiente: Relaciones completas
 - ❌ Pendiente: Seeders
 
 #### 3. Autenticación y Autorización (20%) - 20/20
-- ✅ Laravel Sanctum implementado
+- ✅ Laravel Sanctum implementado correctamente
 - ✅ Sistema Login/Logout funcional
-- ✅ Protección de rutas
+- ✅ Protección de rutas implementada
 - ✅ Gestión de permisos por usuario
+- ✅ Middleware de autenticación configurado
 
 #### 4. Testing - Insomnia/Postman (10%) - 0/10
 - ❌ Pendiente: Colección de pruebas
@@ -43,9 +47,10 @@ Progreso Total: 45/100 puntos (+ 5 puntos extra posibles por HTTPS)
 - ❌ Pendiente: Casos de prueba
 
 #### 5. Documentación (10%) - 5/10
-- ✅ README básico
+- ✅ README con estructura clara
+- ✅ Documentación básica de endpoints
 - ❌ Pendiente: Documentación OpenAPI/Swagger
-- ❌ Pendiente: Guía de uso de la API
+- ⚠️ Pendiente: Completar guía de uso
 
 #### 6. Despliegue (10%) - 0/10
 - ❌ Pendiente: Instrucciones de despliegue
@@ -53,10 +58,10 @@ Progreso Total: 45/100 puntos (+ 5 puntos extra posibles por HTTPS)
 - ❌ Pendiente: HTTPS (opcional +5%)
 
 #### 7. Calidad del Código (10%) - 5/10
-- ✅ Estructura MVC
-- ✅ Patrones de diseño básicos
+- ✅ Estructura MVC implementada
+- ✅ Patrones de diseño básicos aplicados
 - ⚠️ Pendiente: Optimización
-- ⚠️ Pendiente: Mejores prácticas
+- ⚠️ Pendiente: Implementar más mejores prácticas
 
 ## 🛠️ Instalación
 
@@ -81,6 +86,15 @@ POST   /api/v1/users          - Crear usuario (requiere autenticación)
 PUT    /api/v1/users/{user}   - Actualizar usuario (requiere autenticación)
 DELETE /api/v1/users/{user}   - Eliminar usuario (requiere autenticación)
 GET    /api/v1/user           - Obtener usuario autenticado actual
+```
+
+#### Posts
+```
+GET    /api/v1/posts          - Listar posts (público)
+GET    /api/v1/posts/{post}   - Obtener post específico (público)
+POST   /api/v1/posts          - Crear post (requiere autenticación)
+PUT    /api/v1/posts/{post}   - Actualizar post (requiere autenticación)
+DELETE /api/v1/posts/{post}   - Eliminar post (requiere autenticación)
 ```
 
 Todos los endpoints protegidos requieren un token de autenticación válido proporcionado por Laravel Sanctum.
