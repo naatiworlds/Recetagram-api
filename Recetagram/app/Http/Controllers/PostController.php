@@ -17,13 +17,26 @@ class PostController extends Controller
         $this->postService = $postService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $posts = $this->postService->getAllPosts();
-            return ResponseHelper::success($posts, 'Posts retrieved successfully');
+            $filters = $request->only([
+                'username',
+                'date',
+                'from_date',
+                'to_date',
+                'min_likes',
+                'user_id',
+                'search',
+                'sort_by',
+                'sort_order'
+            ]);
+
+            $posts = $this->postService->getFilteredPosts($filters);
+            return ResponseHelper::success($posts, 'Posts recuperados exitosamente');
         } catch (\Exception $e) {
-            return ResponseHelper::error('Failed to retrieve posts', 500);
+            Log::error('Error getting filtered posts: ' . $e->getMessage());
+            return ResponseHelper::error('Error al recuperar los posts', 500);
         }
     }
 
@@ -99,4 +112,37 @@ class PostController extends Controller
         }
     }
 
+    public function getUserPosts($userId)
+    {
+        try {
+            $posts = $this->postService->getPostsByUserId($userId);
+            return ResponseHelper::success($posts, 'Posts del usuario recuperados exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error getting user posts: ' . $e->getMessage());
+            return ResponseHelper::error('Error al recuperar los posts del usuario', 500);
+        }
+    }
+
+    public function getFollowingPosts()
+    {
+        Log::info('Accessing getFollowingPosts method');
+        try {
+            $posts = $this->postService->getFollowingPosts(auth()->id());
+            return ResponseHelper::success($posts, 'Posts de usuarios seguidos recuperados exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error getting following posts: ' . $e->getMessage());
+            return ResponseHelper::error('Error al recuperar los posts', 500);
+        }
+    }
+
+    public function getPublicPosts()
+    {
+        try {
+            $posts = $this->postService->getPublicPosts();
+            return ResponseHelper::success($posts, 'Posts públicos recuperados exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error getting public posts: ' . $e->getMessage());
+            return ResponseHelper::error('Error al recuperar los posts públicos', 500);
+        }
+    }
 }

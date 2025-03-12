@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_private',
     ];
 
     /**
@@ -42,10 +43,61 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_private' => 'boolean',
     ];
 
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function likedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'likes');
+    }
+
+    public function followers()
+    {
+        return $this->hasMany(Follow::class, 'following_id');
+    }
+
+    public function following()
+    {
+        return $this->hasMany(Follow::class, 'follower_id');
+    }
+
+    public function isFollowing(User $user)
+    {
+        return $this->following()
+            ->where('following_id', $user->id)
+            ->where('status', 'accepted')
+            ->exists();
+    }
+
+    public function hasPendingFollowRequest(User $user)
+    {
+        return $this->following()
+            ->where('following_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($user) {
+            $user->posts()->delete();
+        });
     }
 }

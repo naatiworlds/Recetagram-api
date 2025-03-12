@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AuthService
 {
@@ -33,14 +34,7 @@ class AuthService
         return false;
     }
 
-    public function logout($user)
-    {
-        $this->authRepository->deleteCurrentToken($user);
-        return [
-            'status' => 'success',
-            'message' => 'Logged out successfully'
-        ];
-    }
+    
 
     public function getAllUsers()
     {
@@ -79,6 +73,10 @@ class AuthService
             $data['password'] = Hash::make($data['password']);
         }
 
+        if (isset($data['is_private'])) {
+            $data['is_private'] = (bool) $data['is_private'];
+        }
+
         $user->update($data);
         return $user;
     }
@@ -87,5 +85,47 @@ class AuthService
     {
         $user = User::findOrFail($id);
         return $user->delete();
+    }
+
+    public function login(array $credentials)
+    {
+        try {
+            Log::info('Attempting login for user:', ['email' => $credentials['email']]);
+            
+            $user = User::where('email', $credentials['email'])->first();
+
+            if (!$user || !Hash::check($credentials['password'], $user->password)) {
+                throw new \Exception('Credenciales inválidas');
+            }
+
+            // Revocar tokens antiguos
+            $user->tokens()->delete();
+
+            // Crear nuevo token
+            $token = $user->createToken('auth_token');
+
+            Log::info('Login successful for user:', ['user_id' => $user->id]);
+
+            return [
+                'user' => $user,
+                'token' => $token->plainTextToken
+            ];
+        } catch (\Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function logout($user)
+    {
+        try {
+            if ($user && $user->currentAccessToken()) {
+                $user->currentAccessToken()->delete();
+            }
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Logout error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }

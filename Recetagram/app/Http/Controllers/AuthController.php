@@ -66,10 +66,24 @@ class AuthController extends Controller
     public function show(User $user)
     {
         try {
-            $user = $this->authService->getUser($user->id);
-            return ResponseHelper::success($user, 'User retrieved successfully');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Usuario recuperado exitosamente',
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'is_private' => $user->is_private,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at
+                ]
+            ], 200)->header('Content-Type', 'application/json');
         } catch (\Exception $e) {
-            return ResponseHelper::error('Failed to retrieve user', 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al recuperar el usuario'
+            ], 500)->header('Content-Type', 'application/json');
         }
     }
 
@@ -95,15 +109,17 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'string|max:255',
-                'email' => 'email|unique:users,email,' . $user->id,
-                'password' => 'string|min:6',
+                'name' => 'string|max:255|nullable',
+                'email' => 'email|unique:users,email,' . $user->id . '|nullable',
+                'password' => 'string|min:6|nullable',
+                'is_private' => 'boolean|nullable'
             ]);
 
             $updated = $this->authService->updateUser($user->id, $validated);
-            return ResponseHelper::success($updated, 'User updated successfully');
+            return ResponseHelper::success($updated, 'Usuario actualizado exitosamente');
         } catch (\Exception $e) {
-            return ResponseHelper::error('Failed to update user', 500);
+            \Log::error('Error updating user: ' . $e->getMessage());
+            return ResponseHelper::error('Error al actualizar el usuario: ' . $e->getMessage(), 500);
         }
     }
 
@@ -114,6 +130,31 @@ class AuthController extends Controller
             return ResponseHelper::success(null, 'User deleted successfully');
         } catch (\Exception $e) {
             return ResponseHelper::error('Failed to delete user', 500);
+        }
+    }
+
+    public function me(Request $request)
+    {
+        try {
+            $user = $request->user();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Usuario recuperado exitosamente',
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'is_private' => $user->is_private,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at
+                ]
+            ], 200)->header('Content-Type', 'application/json');
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al recuperar el usuario'
+            ], 500)->header('Content-Type', 'application/json');
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Post;
+use App\Models\Follow;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -10,7 +11,10 @@ class PostService
 {
     public function getAllPosts()
     {
-        return Post::with('user')->latest()->get();
+        return Post::with(['user', 'likedBy'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get();
     }
 
     public function createPost(array $validated)
@@ -40,7 +44,9 @@ class PostService
 
     public function getPostById($id)
     {
-        return Post::with('user')->findOrFail($id);
+        return Post::with(['user', 'comments.user', 'likedBy'])
+            ->withCount(['likes', 'comments'])
+            ->findOrFail($id);
     }
 
     public function updatePost($id, array $validated)
@@ -71,5 +77,79 @@ class PostService
         }
         
         $post->delete();
+    }
+    public function getPostsByUserId($userId)
+    {
+        return Post::where('user_id', $userId)->get();
+    }
+
+    public function getFollowingPosts($userId)
+    {
+        Log::info('Getting following posts for user: ' . $userId);
+        
+        $followingIds = Follow::where('follower_id', $userId)
+            ->where('status', 'accepted')
+            ->pluck('following_id')
+            ->toArray();
+            
+        Log::info('Following IDs:', $followingIds);
+
+        return Post::whereIn('user_id', $followingIds)
+            ->with(['user', 'likedBy'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get();
+    }
+
+    public function getPublicPosts()
+    {
+        Log::info('Getting public posts');
+        
+        return Post::whereHas('user', function($query) {
+                $query->where('is_public', true);
+            })
+            ->with(['user', 'likedBy'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get();
+    }
+
+    public function getFilteredPosts($filters = [])
+    {
+        try {
+            Log::info('Filtering posts with criteria:', $filters);
+            
+            $query = Post::query()
+                ->with(['user', 'likedBy'])
+                ->withCount(['likes', 'comments']);
+
+            // Filtro por nombre de usuario
+            if (isset($filters['username'])) {
+                Log::info('Filtering by username: ' . $filters['username']);
+                $query->whereHas('user', function($q) use ($filters) {
+                    $q->where('name', 'like', '%' . $filters['username'] . '%');
+                });
+            }
+
+            // Ordenamiento
+            $sortField = $filters['sort_by'] ?? 'created_at';
+            $sortOrder = $filters['sort_order'] ?? 'desc';
+            $query->orderBy($sortField, $sortOrder);
+
+            Log::info('SQL Query:', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $results = $query->get();
+            Log::info('Found ' . $results->count() . ' posts');
+
+            return $results;
+
+        } catch (\Exception $e) {
+            Log::error('Error in getFilteredPosts: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            throw $e;
+        }
     }
 }
