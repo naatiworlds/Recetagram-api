@@ -7,6 +7,7 @@ use App\Interfaces\PostRepositoryInterface;
 use App\Repositories\PostRepository;
 use App\Interfaces\IngredientRepositoryInterface;
 use App\Repositories\IngredientRepository;
+use Illuminate\Routing\UrlGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,8 +23,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(UrlGenerator $url)
     {
-        //
+        if (env('APP_ENV') == 'production') {
+            $url->forceScheme('https');
+        }
     }
 }

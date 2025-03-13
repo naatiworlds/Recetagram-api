@@ -1,108 +1,66 @@
-# Recetagram - API REST Laravel
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/gIAr2Q8U)
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=18415176)
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## 📝 Descripción del Proyecto
-API RESTful desarrollada con Laravel 10 para la gestión de recetas de cocina. Este proyecto forma parte del módulo de Desarrollo Web en Entorno Servidor y se integrará con un cliente Vue.js.
+## About Laravel
 
-## 🎯 Objetivos del Proyecto
-- API REST completa en Laravel 10
-- Integración con frontend Vue.js
-- Autenticación y autorización segura
-- Documentación completa de la API
-- Sistema de persistencia de datos
-- Despliegue en producción
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-## 🚀 Estado del Proyecto
-Progreso Total: 50/100 puntos (+ 5 puntos extra posibles por HTTPS)
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-### Componentes y Puntuación
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-#### 1. Desarrollo API RESTful (20%) - 12/20
-- ✅ Estructura básica implementada
-- ✅ Endpoints versionados (v1)
-- ✅ Operaciones CRUD para usuarios
-- ✅ Operaciones CRUD parciales para posts
-- ⚠️ Pendiente: Completar operaciones para ingredientes
-- ⚠️ Pendiente: Optimización y caché
+## Learning Laravel
 
-#### 2. Base de Datos y Persistencia (15%) - 8/15
-- ✅ Conexión a base de datos establecida
-- ✅ Migraciones básicas implementadas
-- ✅ Modelos principales creados
-- ⚠️ Pendiente: Relaciones completas
-- ❌ Pendiente: Seeders
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-#### 3. Autenticación y Autorización (20%) - 20/20
-- ✅ Laravel Sanctum implementado correctamente
-- ✅ Sistema Login/Logout funcional
-- ✅ Protección de rutas implementada
-- ✅ Gestión de permisos por usuario
-- ✅ Middleware de autenticación configurado
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-#### 4. Testing - Insomnia/Postman (10%) - 0/10
-- ❌ Pendiente: Colección de pruebas
-- ❌ Pendiente: Documentación de endpoints
-- ❌ Pendiente: Casos de prueba
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-#### 5. Documentación (10%) - 5/10
-- ✅ README con estructura clara
-- ✅ Documentación básica de endpoints
-- ❌ Pendiente: Documentación OpenAPI/Swagger
-- ⚠️ Pendiente: Completar guía de uso
+## Laravel Sponsors
 
-#### 6. Despliegue (10%) - 0/10
-- ❌ Pendiente: Instrucciones de despliegue
-- ❌ Pendiente: Configuración de entorno
-- ❌ Pendiente: HTTPS (opcional +5%)
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
 
-#### 7. Calidad del Código (10%) - 5/10
-- ✅ Estructura MVC implementada
-- ✅ Patrones de diseño básicos aplicados
-- ⚠️ Pendiente: Optimización
-- ⚠️ Pendiente: Implementar más mejores prácticas
+### Premium Partners
 
-## 🛠️ Instalación
+- **[Vehikl](https://vehikl.com/)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Cubet Techno Labs](https://cubettech.com)**
+- **[Cyber-Duck](https://cyber-duck.co.uk)**
+- **[Many](https://www.many.co.uk)**
+- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
+- **[DevSquad](https://devsquad.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
+- **[OP.GG](https://op.gg)**
+- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
+- **[Lendio](https://lendio.com)**
 
-[Pendiente: Instrucciones detalladas de instalación]
+## Contributing
 
-## 📚 Documentación API
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-### Endpoints Disponibles
+## Code of Conduct
 
-#### Autenticación
-```
-POST /api/v1/register - Registrar nuevo usuario
-POST /api/v1/login    - Iniciar sesión
-POST /api/v1/logout   - Cerrar sesión (requiere autenticación)
-```
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-#### Usuarios
-```
-GET    /api/v1/users          - Listar usuarios (requiere autenticación)
-GET    /api/v1/users/{user}   - Obtener usuario específico (requiere autenticación)
-POST   /api/v1/users          - Crear usuario (requiere autenticación)
-PUT    /api/v1/users/{user}   - Actualizar usuario (requiere autenticación)
-DELETE /api/v1/users/{user}   - Eliminar usuario (requiere autenticación)
-GET    /api/v1/user           - Obtener usuario autenticado actual
-```
+## Security Vulnerabilities
 
-#### Posts
-```
-GET    /api/v1/posts          - Listar posts (público)
-GET    /api/v1/posts/{post}   - Obtener post específico (público)
-POST   /api/v1/posts          - Crear post (requiere autenticación)
-PUT    /api/v1/posts/{post}   - Actualizar post (requiere autenticación)
-DELETE /api/v1/posts/{post}   - Eliminar post (requiere autenticación)
-```
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-Todos los endpoints protegidos requieren un token de autenticación válido proporcionado por Laravel Sanctum.
+## License
 
-[Pendiente: Documentación detallada de request/response para cada endpoint]
-
-## 👥 Autor
-Natalia Cortés Bernal
-
-## 📄 Licencia
-[Pendiente: Información de licencia]
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
