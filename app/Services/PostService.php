@@ -21,26 +21,30 @@ class PostService
     {
         try {
             if (isset($validated['imagen'])) {
-                // Guardar la imagen con URL completa
                 $imagePath = $validated['imagen']->store('posts', 'public');
-                $validated['imagen'] = config('app.url') . '/storage/' . $imagePath;
+                // Guardar solo la ruta en la base de datos
+                $validated['imagen'] = $imagePath;
             }
 
-            Log::info('Image saved successfully:', ['path' => $validated['imagen']]);
-
-            return Post::create([
+            $post = Post::create([
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'imagen' => $validated['imagen'],
                 'ingredients' => $validated['ingredients'],
                 'user_id' => auth()->id(),
             ]);
+
+            // Modificar la respuesta para incluir la URL completa
+            $post->imagen = config('app.url') . '/storage/' . $post->imagen;
+            
+            return $post;
         } catch (\Exception $e) {
             Log::error('Error in PostService::createPost: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
             throw $e;
         }
     }
+
 
     public function getPostById($id)
     {
@@ -58,9 +62,8 @@ class PostService
             if ($post->imagen) {
                 Storage::disk('public')->delete($post->imagen);
             }
-            // Guardar la nueva imagen
-            $imagePath = $validated['imagen']->store('posts', 'public');
-            $validated['imagen'] = $imagePath;
+            // Guardar la nueva imagen con ruta relativa
+            $validated['imagen'] = $validated['imagen']->store('posts', 'public');
         }
 
         $post->update($validated);
