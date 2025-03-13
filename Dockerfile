@@ -2,6 +2,9 @@ FROM richarvey/nginx-php-fpm:latest
 
 COPY . .
 
+# Asegurarse de que deploy.sh tenga permisos de ejecución
+RUN chmod +x deploy.sh
+
 # Configuración de la imagen
 ENV SKIP_COMPOSER 1
 ENV WEBROOT /var/www/html/public
