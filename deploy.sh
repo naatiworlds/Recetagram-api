@@ -10,4 +10,4 @@ php artisan route:cache
 
 echo "Ejecutando migraciones..."
 php artisan migrate --force
-php artisan db:seed --force
+php artisan db:seed --force 
