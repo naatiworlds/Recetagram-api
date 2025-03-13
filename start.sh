@@ -9,6 +9,11 @@ chmod -R 755 /var/www/html/storage
 chown -R nobody:nobody /var/www/html/bootstrap/cache
 chmod -R 755 /var/www/html/bootstrap/cache
 
+echo "Waiting for database connection..."
+while ! nc -z mysql 3306; do
+  sleep 1
+done
+
 echo "Caching config..."
 php artisan config:cache
 

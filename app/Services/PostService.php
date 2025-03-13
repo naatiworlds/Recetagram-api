@@ -70,12 +70,12 @@ class PostService
     public function deletePost($id)
     {
         $post = Post::findOrFail($id);
-        
+
         // Eliminar la imagen si existe
         if ($post->imagen) {
             Storage::disk('public')->delete($post->imagen);
         }
-        
+
         $post->delete();
     }
     public function getPostsByUserId($userId)
@@ -86,12 +86,12 @@ class PostService
     public function getFollowingPosts($userId)
     {
         Log::info('Getting following posts for user: ' . $userId);
-        
+
         $followingIds = Follow::where('follower_id', $userId)
             ->where('status', 'accepted')
             ->pluck('following_id')
             ->toArray();
-            
+
         Log::info('Following IDs:', $followingIds);
 
         return Post::whereIn('user_id', $followingIds)
@@ -104,10 +104,10 @@ class PostService
     public function getPublicPosts()
     {
         Log::info('Getting public posts');
-        
-        return Post::whereHas('user', function($query) {
-                $query->where('is_public', true);
-            })
+
+        return Post::whereHas('user', function ($query) {
+            $query->where('is_public', true);
+        })
             ->with(['user', 'likedBy'])
             ->withCount(['likes', 'comments'])
             ->latest()
@@ -118,34 +118,20 @@ class PostService
     {
         try {
             Log::info('Filtering posts with criteria:', $filters);
-            
+
             $query = Post::query()
                 ->with(['user', 'likedBy'])
                 ->withCount(['likes', 'comments']);
 
-            // Filtro por nombre de usuario
-            if (isset($filters['username'])) {
-                Log::info('Filtering by username: ' . $filters['username']);
-                $query->whereHas('user', function($q) use ($filters) {
-                    $q->where('name', 'like', '%' . $filters['username'] . '%');
-                });
+            // Añadir try-catch específico para la consulta
+            try {
+                $results = $query->latest()->get();
+                Log::info('Found ' . $results->count() . ' posts');
+                return $results;
+            } catch (\PDOException $e) {
+                Log::error('Database error: ' . $e->getMessage());
+                throw new \Exception('Error de base de datos al recuperar los posts');
             }
-
-            // Ordenamiento
-            $sortField = $filters['sort_by'] ?? 'created_at';
-            $sortOrder = $filters['sort_order'] ?? 'desc';
-            $query->orderBy($sortField, $sortOrder);
-
-            Log::info('SQL Query:', [
-                'sql' => $query->toSql(),
-                'bindings' => $query->getBindings()
-            ]);
-
-            $results = $query->get();
-            Log::info('Found ' . $results->count() . ' posts');
-
-            return $results;
-
         } catch (\Exception $e) {
             Log::error('Error in getFilteredPosts: ' . $e->getMessage());
             Log::error($e->getTraceAsString());

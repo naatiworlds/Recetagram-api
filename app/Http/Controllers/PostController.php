@@ -20,23 +20,16 @@ class PostController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only([
-                'username',
-                'date',
-                'from_date',
-                'to_date',
-                'min_likes',
-                'user_id',
-                'search',
-                'sort_by',
-                'sort_order'
-            ]);
+            $posts = Post::with(['user', 'likedBy'])
+                ->withCount(['likes', 'comments'])
+                ->latest()
+                ->get();
 
-            $posts = $this->postService->getFilteredPosts($filters);
             return ResponseHelper::success($posts, 'Posts recuperados exitosamente');
         } catch (\Exception $e) {
-            Log::error('Error getting filtered posts: ' . $e->getMessage());
-            return ResponseHelper::error('Error al recuperar los posts', 500);
+            log::error('Error en PostController@index: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            return ResponseHelper::error('Error al recuperar los posts: ' . $e->getMessage(), 500);
         }
     }
 
@@ -52,16 +45,16 @@ class PostController extends Controller
 
             // Decodificar los ingredientes
             $validated['ingredients'] = json_decode($validated['ingredients'], true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception('Invalid ingredients format');
             }
 
             Log::info('Validation passed. Request data:', $request->all());
-            
+
             $post = $this->postService->createPost($validated);
             Log::info('Post created successfully:', ['post_id' => $post->id]);
-            
+
             return ResponseHelper::success($post, 'Post created successfully', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error:', $e->errors());
