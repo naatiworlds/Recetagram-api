@@ -21,8 +21,6 @@ ENV LOG_CHANNEL stderr
 # Permitir que Composer se ejecute como root
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Exponer el puerto que Render espera
-EXPOSE 10000
 
 # Ejecutar el script de despliegue
 CMD ["./deploy.sh"]
