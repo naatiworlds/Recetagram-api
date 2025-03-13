@@ -21,9 +21,9 @@ class PostService
     {
         try {
             if (isset($validated['imagen'])) {
-                // Guardar la imagen en storage/app/public/posts
+                // Guardar la imagen con URL completa
                 $imagePath = $validated['imagen']->store('posts', 'public');
-                $validated['imagen'] = $imagePath;
+                $validated['imagen'] = config('app.url') . '/storage/' . $imagePath;
             }
 
             Log::info('Image saved successfully:', ['path' => $validated['imagen']]);

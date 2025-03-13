@@ -2,7 +2,8 @@
 
 echo "Running composer"
 composer install --no-dev --working-dir=/var/www/html
-
+# Crear enlace simbólico para el storage
+php artisan storage:link
 # Asegurar permisos correctos
 chown -R nobody:nobody /var/www/html/storage
 chmod -R 755 /var/www/html/storage

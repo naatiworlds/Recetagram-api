@@ -30,7 +30,9 @@ RUN rm -f /usr/local/sbin/php-fpm && \
     ln -s /usr/sbin/php-fpm82 /usr/local/sbin/php-fpm
 
 # Crear directorios y establecer permisos
+# Crear directorios y establecer permisos
 RUN mkdir -p /etc/supervisor/conf.d /run/php && \
+    mkdir -p /var/www/html/storage/app/public/posts && \
     mkdir -p /var/www/html/storage/framework/cache && \
     mkdir -p /var/www/html/storage/framework/sessions && \
     mkdir -p /var/www/html/storage/framework/views && \
