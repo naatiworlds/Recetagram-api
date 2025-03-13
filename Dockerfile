@@ -3,9 +3,9 @@ FROM richarvey/nginx-php-fpm:3.1.4
 COPY . .
 
 # Configuración de PHP
-RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
+COPY php.ini /usr/local/etc/php/php.ini
 
-# Agregar repositorio para PHP 8.2 y extensiones PostgreSQL
+# Agregar repositorio para PHP 8.2 y extensiones
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community \
     php82 \
     php82-fpm \
@@ -17,6 +17,11 @@ RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/co
     php82-xmlwriter \
     php82-session \
     php82-mbstring \
+    php82-fileinfo \
+    php82-exif \
+    php82-opcache \
+    php82-openssl \
+    php82-json \
     supervisor
 
 # Configurar PHP-FPM
