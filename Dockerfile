@@ -1,26 +1,27 @@
 FROM richarvey/nginx-php-fpm:latest
 
-# Copiar el código y el script deploy.sh
-COPY . /var/www/html
+COPY . .
 
-# Asegurarse de que deploy.sh tenga permisos de ejecución
-RUN chmod +x /var/www/html/deploy.sh
+# Configuración de PHP
+RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
 
-# Configuración de la imagen
-ENV SKIP_COMPOSER 1
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
+# Instalar dependencias
+RUN apk add --no-cache \
+    php81-pdo \
+    php81-pdo_mysql \
+    php81-tokenizer \
+    php81-xml \
+    php81-dom \
+    php81-xmlwriter
 
-# Configuración de Laravel
-ENV APP_ENV production
-ENV APP_DEBUG false
-ENV LOG_CHANNEL stderr
+# Instalar composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Permitir que Composer se ejecute como root
-ENV COMPOSER_ALLOW_SUPERUSER 1
+# Configuración de nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 
+# Script de inicio
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-# Ejecutar el script de despliegue
-CMD ["./deploy.sh"]
+CMD ["/start.sh"]
