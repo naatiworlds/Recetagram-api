@@ -18,7 +18,8 @@ RUN apk add --no-cache \
     supervisor
 
 # Configurar PHP-FPM
-RUN ln -s /usr/sbin/php-fpm81 /usr/local/sbin/php-fpm
+RUN rm -f /usr/local/sbin/php-fpm && \
+    ln -s /usr/sbin/php-fpm81 /usr/local/sbin/php-fpm
 
 # Instalar composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
