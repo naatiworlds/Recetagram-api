@@ -7,6 +7,8 @@ RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
 
 # Instalar dependencias
 RUN apk add --no-cache \
+    php81 \
+    php81-fpm \
     php81-pdo \
     php81-pdo_mysql \
     php81-tokenizer \
@@ -15,11 +17,14 @@ RUN apk add --no-cache \
     php81-xmlwriter \
     supervisor
 
+# Configurar PHP-FPM
+RUN ln -s /usr/sbin/php-fpm81 /usr/local/sbin/php-fpm
+
 # Instalar composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Crear directorio para supervisor
-RUN mkdir -p /etc/supervisor/conf.d
+# Crear directorios necesarios
+RUN mkdir -p /etc/supervisor/conf.d /run/php
 
 # Copiar archivos de configuración
 COPY nginx.conf /etc/nginx/nginx.conf
