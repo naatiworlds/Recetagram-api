@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -e  # Detiene el script si ocurre un error
 
 # Ejecuta Composer para instalar las dependencias de producción
 echo "Ejecutando Composer..."
