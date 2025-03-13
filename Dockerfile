@@ -5,21 +5,23 @@ COPY . .
 # Configuración de PHP
 RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
 
-# Instalar dependencias
-RUN apk add --no-cache \
-    php81 \
-    php81-fpm \
-    php81-pdo \
-    php81-pdo_mysql \
-    php81-tokenizer \
-    php81-xml \
-    php81-dom \
-    php81-xmlwriter \
+# Agregar repositorio para PHP 8.2
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community \
+    php82 \
+    php82-fpm \
+    php82-pdo \
+    php82-pdo_mysql \
+    php82-tokenizer \
+    php82-xml \
+    php82-dom \
+    php82-xmlwriter \
+    php82-session \
+    php82-mbstring \
     supervisor
 
 # Configurar PHP-FPM
 RUN rm -f /usr/local/sbin/php-fpm && \
-    ln -s /usr/sbin/php-fpm81 /usr/local/sbin/php-fpm
+    ln -s /usr/sbin/php-fpm82 /usr/local/sbin/php-fpm
 
 # Instalar composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
