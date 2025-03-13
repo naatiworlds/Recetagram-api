@@ -3,7 +3,8 @@ FROM richarvey/nginx-php-fpm:3.1.4
 COPY . .
 
 # Configuración de PHP
-COPY php.ini /usr/local/etc/php/php.ini
+RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
+
 
 # Agregar repositorio para PHP 8.2 y extensiones
 RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community \
