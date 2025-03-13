@@ -1,9 +1,10 @@
 FROM richarvey/nginx-php-fpm:latest
 
-COPY . .
+# Copiar el código y el script deploy.sh
+COPY . /var/www/html
 
 # Asegurarse de que deploy.sh tenga permisos de ejecución
-RUN chmod +x deploy.sh
+RUN chmod +x /var/www/html/deploy.sh
 
 # Configuración de la imagen
 ENV SKIP_COMPOSER 1
@@ -20,8 +21,8 @@ ENV LOG_CHANNEL stderr
 # Permitir que Composer se ejecute como root
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Exponer el puerto correcto para Render
+# Exponer el puerto que Render espera
 EXPOSE 10000
 
-# Definir el script de despliegue como comando de inicio
+# Ejecutar el script de despliegue
 CMD ["./deploy.sh"]
