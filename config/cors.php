@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
     
-    'Access-Control-Allow-Origin' => 'http://localhost:5173',
+    'Access-Control-Allow-Origin' => 'https://recetagram.netlify.app/',
 
     'allowed_origins' => ['*'],
 
