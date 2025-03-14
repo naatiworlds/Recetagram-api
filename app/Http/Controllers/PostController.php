@@ -80,40 +80,18 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Debug detallado del request
-            Log::info('Request detallado:', [
+            // Debug más detallado
+            Log::info('Request completo:', [
                 'all' => $request->all(),
                 'has_file' => $request->hasFile('imagen'),
-                'post_fields' => $_POST,
-                'files' => $_FILES,
+                'raw_content' => $request->getContent(),
+                'files' => $request->allFiles(),
+                'headers' => $request->headers->all(),
+                'method' => $request->method(),
                 'content_type' => $request->header('Content-Type')
             ]);
 
-            // Recoger los datos manualmente del form-data
-            $data = [];
-            if ($request->has('title')) $data['title'] = $request->input('title');
-            if ($request->has('description')) $data['description'] = $request->input('description');
-            if ($request->hasFile('imagen')) $data['imagen'] = $request->file('imagen');
-            if ($request->has('ingredients')) $data['ingredients'] = $request->input('ingredients');
-
-            // Si no hay datos, devolver error
-            if (empty($data)) {
-                return ResponseHelper::error('No se proporcionaron datos para actualizar', 422, [
-                    'code' => 'VALIDATION_ERROR',
-                    'detail' => 'No se encontraron campos para actualizar',
-                    'debug_info' => [
-                        'request_has' => [
-                            'title' => $request->has('title'),
-                            'description' => $request->has('description'),
-                            'imagen' => $request->hasFile('imagen'),
-                            'ingredients' => $request->has('ingredients')
-                        ],
-                        'content_type' => $request->header('Content-Type')
-                    ]
-                ]);
-            }
-
-            // Validar los datos recolectados
+            // Validar primero
             $validated = $request->validate([
                 'title' => 'sometimes|string|max:255',
                 'description' => 'sometimes|string',
@@ -121,64 +99,50 @@ class PostController extends Controller
                 'ingredients' => 'sometimes|string'
             ]);
 
-            // Si hay ingredientes, intentar decodificarlos
-            if (isset($validated['ingredients'])) {
-                try {
-                    $validated['ingredients'] = json_decode($validated['ingredients'], true);
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        $error = [
-                            'code' => 'INVALID_JSON',
-                            'detail' => json_last_error_msg(),
-                            'data' => $validated['ingredients']
-                        ];
-                        Log::error('Error decodificando ingredients:', $error);
-                        return ResponseHelper::error('Formato de ingredientes inválido', 422, $error);
+            // Si la validación pasa pero no hay datos, intentar obtener los datos del input directamente
+            if (empty($validated)) {
+                $data = [];
+                
+                // Obtener datos del input directamente
+                foreach (['title', 'description', 'ingredients'] as $field) {
+                    if ($request->input($field) !== null) {
+                        $data[$field] = $request->input($field);
                     }
-                } catch (\Exception $e) {
-                    $error = [
-                        'code' => 'JSON_PROCESSING_ERROR',
-                        'detail' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
-                    ];
-                    Log::error('Error procesando ingredients:', $error);
-                    return ResponseHelper::error('Error procesando ingredientes', 422, $error);
                 }
+
+                // Manejar la imagen separadamente
+                if ($request->hasFile('imagen')) {
+                    $data['imagen'] = $request->file('imagen');
+                }
+
+                // Si aún no hay datos, devolver error
+                if (empty($data)) {
+                    return ResponseHelper::error('No se proporcionaron datos válidos', 422, [
+                        'code' => 'VALIDATION_ERROR',
+                        'detail' => 'La solicitud no contiene campos válidos para actualizar',
+                        'debug' => [
+                            'request_data' => $request->all(),
+                            'input_data' => $request->input(),
+                            'files' => $request->allFiles()
+                        ]
+                    ]);
+                }
+
+                $validated = $data;
             }
 
-            try {
-                $post = $this->postService->updatePost($id, $validated);
-                return ResponseHelper::success($post, 'Post actualizado exitosamente');
-            } catch (\Exception $e) {
-                $error = [
-                    'code' => 'UPDATE_ERROR',
-                    'detail' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                    'validated_data' => $validated,
-                    'request_data' => $request->all()
-                ];
-                Log::error('Error en PostService:', $error);
-                return ResponseHelper::error($e->getMessage(), 500, $error);
-            }
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            $error = [
-                'code' => 'VALIDATION_ERROR',
-                'detail' => $e->errors(),
-                'request_data' => $request->all()
-            ];
-            Log::error('Error de validación:', $error);
-            return ResponseHelper::error($e->errors(), 422, $error);
+            // Continuar con el proceso de actualización
+            $post = $this->postService->updatePost($id, $validated);
+            return ResponseHelper::success($post, 'Post actualizado exitosamente');
+
         } catch (\Exception $e) {
-            $error = [
-                'code' => 'UNEXPECTED_ERROR',
-                'detail' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ];
-            Log::error('Error general:', $error);
-            return ResponseHelper::error('Error inesperado al actualizar el post', 500, $error);
+            Log::error('Error en update:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ResponseHelper::error('Error al actualizar el post: ' . $e->getMessage(), 500);
         }
     }
-
 
     public function destroy($id)
     {
