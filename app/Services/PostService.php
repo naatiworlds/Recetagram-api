@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\Follow;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class PostService
 {
@@ -21,9 +22,16 @@ class PostService
     {
         try {
             if (isset($validated['imagen'])) {
-                // Guardar la imagen y mantener la ruta como 'posts/nombre-archivo.jpg'
-                $imagePath = $validated['imagen']->store('posts', 'public');
-                $validated['imagen'] = $imagePath;
+                // Subir imagen a Cloudinary
+                $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
+                    'folder' => 'posts',
+                    'transformation' => [
+                        'quality' => 'auto',
+                        'fetch_format' => 'auto',
+                    ]
+                ]);
+                
+                $validated['imagen'] = $uploadedFile->getSecurePath();
             }
 
             $post = Post::create([
@@ -34,7 +42,6 @@ class PostService
                 'user_id' => auth()->id(),
             ]);
 
-            // Recargar el post con sus relaciones
             return Post::with(['user', 'likedBy' => function($query) {
                     $query->select('users.id', 'users.name');
                 }])
@@ -62,34 +69,47 @@ class PostService
             $post = Post::findOrFail($id);
 
             if (isset($validated['imagen'])) {
-                // Eliminar la imagen anterior si existe
+                // Si hay una imagen anterior, eliminarla de Cloudinary
                 if ($post->imagen) {
-                    Storage::disk('public')->delete($post->imagen);
+                    // Extraer el public_id de la URL anterior
+                    $oldPublicId = $this->getPublicIdFromUrl($post->imagen);
+                    if ($oldPublicId) {
+                        Cloudinary::destroy($oldPublicId);
+                    }
                 }
                 
-                // Guardar la nueva imagen
-                $imagePath = $validated['imagen']->store('posts', 'public');
-                $validated['imagen'] = $imagePath;  // Esto guardará 'posts/nombre-archivo.jpg'
+                // Subir nueva imagen a Cloudinary
+                $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
+                    'folder' => 'posts',
+                    'transformation' => [
+                        'quality' => 'auto',
+                        'fetch_format' => 'auto',
+                    ]
+                ]);
+                
+                $validated['imagen'] = $uploadedFile->getSecurePath();
             }
 
             $post->update($validated);
 
-            // Recargar el post con sus relaciones exactamente como lo necesitamos
-            $post = Post::with(['user', 'likedBy' => function($query) {
+            return Post::with(['user', 'likedBy' => function($query) {
                     $query->select('users.id', 'users.name');
                 }])
                 ->withCount(['likes', 'comments'])
                 ->findOrFail($post->id);
 
-            // No modificamos la ruta de la imagen, la dejamos como está en la base de datos
-            // Ejemplo: 'posts/BV19tTELokOsUhfi1Wdx7XYFlxz74TYn9FwDZQXd.jpg'
-
-            return $post;
         } catch (\Exception $e) {
             Log::error('Error in updatePost: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
             throw $e;
         }
+    }
+
+    private function getPublicIdFromUrl($url)
+    {
+        // Extraer el public_id de la URL de Cloudinary
+        preg_match('/\/v\d+\/([^.]+)/', $url, $matches);
+        return isset($matches[1]) ? $matches[1] : null;
     }
 
     public function deletePost($id)
