@@ -21,8 +21,8 @@ class PostService
     {
         try {
             if (isset($validated['imagen'])) {
+                // Guardar la imagen y mantener la ruta como 'posts/nombre-archivo.jpg'
                 $imagePath = $validated['imagen']->store('posts', 'public');
-                // Guardar solo la ruta en la base de datos
                 $validated['imagen'] = $imagePath;
             }
 
@@ -34,10 +34,13 @@ class PostService
                 'user_id' => auth()->id(),
             ]);
 
-            // Modificar la respuesta para incluir la URL completa
-            $post->imagen = config('app.url') . '/storage/' . $post->imagen;
-            
-            return $post;
+            // Recargar el post con sus relaciones
+            return Post::with(['user', 'likedBy' => function($query) {
+                    $query->select('users.id', 'users.name');
+                }])
+                ->withCount(['likes', 'comments'])
+                ->findOrFail($post->id);
+
         } catch (\Exception $e) {
             Log::error('Error in PostService::createPost: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
@@ -66,20 +69,20 @@ class PostService
                 
                 // Guardar la nueva imagen
                 $imagePath = $validated['imagen']->store('posts', 'public');
-                $validated['imagen'] = $imagePath;
+                $validated['imagen'] = $imagePath;  // Esto guardará 'posts/nombre-archivo.jpg'
             }
 
             $post->update($validated);
 
-            // Recargar el post con sus relaciones
-            $post = Post::with(['user', 'likedBy'])
+            // Recargar el post con sus relaciones exactamente como lo necesitamos
+            $post = Post::with(['user', 'likedBy' => function($query) {
+                    $query->select('users.id', 'users.name');
+                }])
                 ->withCount(['likes', 'comments'])
                 ->findOrFail($post->id);
 
-            // Asegurarnos de devolver la URL completa de la imagen
-            if ($post->imagen) {
-                $post->imagen = '/storage/' . $post->imagen;
-            }
+            // No modificamos la ruta de la imagen, la dejamos como está en la base de datos
+            // Ejemplo: 'posts/BV19tTELokOsUhfi1Wdx7XYFlxz74TYn9FwDZQXd.jpg'
 
             return $post;
         } catch (\Exception $e) {
