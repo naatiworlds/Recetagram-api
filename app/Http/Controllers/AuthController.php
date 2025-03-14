@@ -29,7 +29,7 @@ class AuthController extends Controller
 
             return ResponseHelper::error('Invalid credentials', 401);
         } catch (\Exception $e) {
-            return ResponseHelper::error('Login failed', 500);
+            return ResponseHelper::error('Login failed' . $e->getMessage(), 500);
         }
     }
 

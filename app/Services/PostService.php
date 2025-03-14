@@ -125,8 +125,8 @@ class PostService
                     'folder' => 'posts'
                 ]);
                 
-                // Obtener la URL segura usando el método getSecureUrl()
-                $secureUrl = $uploadResult->getSecureUrl();
+                // Obtener la URL segura directamente del resultado
+                $secureUrl = $uploadResult['secure_url'];
                 if (!$secureUrl) {
                     throw new \Exception('Error al obtener la URL de Cloudinary');
                 }
