@@ -77,6 +77,10 @@ class PostService
         try {
             $post = Post::findOrFail($id);
             
+            if ($post->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+                throw new \Exception('No tienes permiso para actualizar este post');
+            }
+
             // Preparar los datos a actualizar
             $dataToUpdate = [];
             
@@ -94,7 +98,6 @@ class PostService
 
             if (isset($validated['imagen'])) {
                 try {
-                    // Si hay una imagen anterior, eliminarla de Cloudinary
                     if ($post->imagen) {
                         $oldPublicId = $this->getPublicIdFromUrl($post->imagen);
                         if ($oldPublicId) {
@@ -117,12 +120,19 @@ class PostService
                 }
             }
 
-            // Realizar la actualización solo si hay datos para actualizar
-            if (!empty($dataToUpdate)) {
-                $post->update($dataToUpdate);
+            // Verificar si hay datos para actualizar
+            if (empty($dataToUpdate)) {
+                throw new \Exception('No se proporcionaron datos para actualizar');
             }
 
-            // Recargar el post con todas sus relaciones y conteos
+            // Intentar actualizar y verificar si se realizó con éxito
+            $updated = $post->update($dataToUpdate);
+            
+            if (!$updated) {
+                throw new \Exception('No se pudo actualizar el post');
+            }
+
+            // Recargar el post con todas sus relaciones
             $updatedPost = Post::with([
                 'user' => function($query) {
                     $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_private', 'is_public');
@@ -134,9 +144,6 @@ class PostService
             ])
             ->withCount(['likes', 'comments'])
             ->findOrFail($post->id);
-
-            // Asegurarse de que el post está fresco con los últimos datos
-            $updatedPost->refresh();
 
             return $updatedPost;
 

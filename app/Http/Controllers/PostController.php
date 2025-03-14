@@ -87,26 +87,35 @@ class PostController extends Controller
                 'ingredients' => 'sometimes|required|string'
             ]);
 
-            // Decodificar los ingredientes si están presentes
             if (isset($validated['ingredients'])) {
                 $validated['ingredients'] = json_decode($validated['ingredients'], true);
-
+                
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new \Exception('Invalid ingredients format');
+                    return ResponseHelper::error('Formato de ingredientes inválido', 422);
                 }
             }
 
-            // Eliminar el código de subida de imagen aquí y dejar que el servicio lo maneje
-            $post = $this->postService->updatePost($id, $validated);
-
-            return ResponseHelper::success($post, 'Post actualizado exitosamente');
+            try {
+                $post = $this->postService->updatePost($id, $validated);
+                return ResponseHelper::success($post, 'Post actualizado exitosamente');
+            } catch (\Exception $e) {
+                $errorMessage = $e->getMessage();
+                
+                if (str_contains($errorMessage, 'No tienes permiso')) {
+                    return ResponseHelper::error($errorMessage, 403);
+                } elseif (str_contains($errorMessage, 'No se proporcionaron datos')) {
+                    return ResponseHelper::error($errorMessage, 422);
+                } elseif (str_contains($errorMessage, 'No se pudo actualizar')) {
+                    return ResponseHelper::error($errorMessage, 400);
+                }
+                
+                return ResponseHelper::error('Error al actualizar el post: ' . $errorMessage, 500);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation error:', $e->errors());
             return ResponseHelper::error($e->errors(), 422);
         } catch (\Exception $e) {
             Log::error('Error updating post: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            return ResponseHelper::error('Error al actualizar el post: ' . $e->getMessage(), 500);
+            return ResponseHelper::error('Error inesperado al actualizar el post', 500);
         }
     }
 
