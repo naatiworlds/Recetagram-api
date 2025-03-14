@@ -20,7 +20,7 @@ class ResponseHelper
             'message' => $message,
             'errors' => $errors,
             'timestamp' => now()->toIso8601String(),
-            'request_id' => request()->id() ?? uniqid(),
+            'request_id' => uniqid('req_'),
         ], $code);
     }
 }
