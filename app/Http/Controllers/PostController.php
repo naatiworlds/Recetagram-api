@@ -86,18 +86,32 @@ class PostController extends Controller
                 'files' => $request->allFiles(),
                 'headers' => $request->headers->all(),
                 'method' => $request->method(),
-                'contentType' => $request->header('Content-Type')
+                'contentType' => $request->header('Content-Type'),
+                'input' => $request->input(),
+                'raw' => $request->getContent()
             ]);
 
             $validated = $request->validate([
-                'title' => 'sometimes|required|string|max:255',
-                'description' => 'sometimes|required|string',
+                'title' => 'sometimes|string|max:255',
+                'description' => 'sometimes|string',
                 'imagen' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'ingredients' => 'sometimes|required|string'
+                'ingredients' => 'sometimes|string'
             ]);
 
             // Log de los datos validados
             Log::info('Datos validados:', ['validated' => $validated]);
+
+            if (empty($validated)) {
+                return ResponseHelper::error('No se proporcionaron datos válidos para actualizar', 422, [
+                    'code' => 'VALIDATION_ERROR',
+                    'detail' => 'La solicitud no contiene campos válidos para actualizar',
+                    'received_data' => [
+                        'request_all' => $request->all(),
+                        'request_input' => $request->input(),
+                        'content_type' => $request->header('Content-Type')
+                    ]
+                ]);
+            }
 
             // Si hay ingredientes, intentar decodificarlos
             if (isset($validated['ingredients'])) {
