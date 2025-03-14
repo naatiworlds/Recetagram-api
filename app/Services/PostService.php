@@ -22,22 +22,31 @@ class PostService
     {
         try {
             if (isset($validated['imagen'])) {
-                // Subir imagen a Cloudinary
-                $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
-                    'folder' => 'posts',
-                    'transformation' => [
-                        'quality' => 'auto',
-                        'fetch_format' => 'auto',
-                    ]
-                ]);
-                
-                $validated['imagen'] = $uploadedFile->getSecurePath();
+                // Subir imagen a Cloudinary con manejo de errores
+                try {
+                    $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
+                        'folder' => 'posts',
+                        'transformation' => [
+                            'quality' => 'auto',
+                            'fetch_format' => 'auto',
+                        ]
+                    ]);
+                    
+                    if (!$uploadedFile || !$uploadedFile->getSecurePath()) {
+                        throw new \Exception('Error al obtener la URL de Cloudinary');
+                    }
+                    
+                    $validated['imagen'] = $uploadedFile->getSecurePath();
+                } catch (\Exception $e) {
+                    Log::error('Error uploading to Cloudinary: ' . $e->getMessage());
+                    throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
+                }
             }
 
             $post = Post::create([
                 'title' => $validated['title'],
                 'description' => $validated['description'],
-                'imagen' => $validated['imagen'],
+                'imagen' => $validated['imagen'] ?? null,
                 'ingredients' => $validated['ingredients'],
                 'user_id' => auth()->id(),
             ]);
@@ -69,25 +78,33 @@ class PostService
             $post = Post::findOrFail($id);
 
             if (isset($validated['imagen'])) {
-                // Si hay una imagen anterior, eliminarla de Cloudinary
-                if ($post->imagen) {
-                    // Extraer el public_id de la URL anterior
-                    $oldPublicId = $this->getPublicIdFromUrl($post->imagen);
-                    if ($oldPublicId) {
-                        Cloudinary::destroy($oldPublicId);
+                try {
+                    // Si hay una imagen anterior, eliminarla de Cloudinary
+                    if ($post->imagen) {
+                        $oldPublicId = $this->getPublicIdFromUrl($post->imagen);
+                        if ($oldPublicId) {
+                            Cloudinary::destroy($oldPublicId);
+                        }
                     }
+                    
+                    // Subir nueva imagen a Cloudinary
+                    $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
+                        'folder' => 'posts',
+                        'transformation' => [
+                            'quality' => 'auto',
+                            'fetch_format' => 'auto',
+                        ]
+                    ]);
+                    
+                    if (!$uploadedFile || !$uploadedFile->getSecurePath()) {
+                        throw new \Exception('Error al obtener la URL de Cloudinary');
+                    }
+                    
+                    $validated['imagen'] = $uploadedFile->getSecurePath();
+                } catch (\Exception $e) {
+                    Log::error('Error uploading to Cloudinary: ' . $e->getMessage());
+                    throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
                 }
-                
-                // Subir nueva imagen a Cloudinary
-                $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
-                    'folder' => 'posts',
-                    'transformation' => [
-                        'quality' => 'auto',
-                        'fetch_format' => 'auto',
-                    ]
-                ]);
-                
-                $validated['imagen'] = $uploadedFile->getSecurePath();
             }
 
             $post->update($validated);
