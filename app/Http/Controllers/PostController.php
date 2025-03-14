@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Services\PostService;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
@@ -89,19 +90,33 @@ class PostController extends Controller
             // Decodificar los ingredientes si están presentes
             if (isset($validated['ingredients'])) {
                 $validated['ingredients'] = json_decode($validated['ingredients'], true);
-                
+
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     throw new \Exception('Invalid ingredients format');
                 }
             }
 
+            // Subir la nueva imagen a Cloudinary si existe
+            if ($request->hasFile('imagen')) {
+                $imagePath = $request->file('imagen')->getRealPath();
+                $uploadedImage = Cloudinary::upload($imagePath)->getSecureUrl();
+                $validated['imagen'] = $uploadedImage;  // Cambiar la URL de la imagen
+            }
+
+            // Actualizar el post con los datos validados
             $post = $this->postService->updatePost($id, $validated);
+
             return ResponseHelper::success($post, 'Post actualizado exitosamente');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error:', $e->errors());
+            return ResponseHelper::error($e->errors(), 422);
         } catch (\Exception $e) {
             Log::error('Error updating post: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return ResponseHelper::error('Error al actualizar el post: ' . $e->getMessage(), 500);
         }
     }
+
 
     public function destroy($id)
     {
