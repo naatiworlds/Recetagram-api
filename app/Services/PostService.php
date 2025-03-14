@@ -76,6 +76,21 @@ class PostService
     {
         try {
             $post = Post::findOrFail($id);
+            
+            // Preparar los datos a actualizar
+            $dataToUpdate = [];
+            
+            if (isset($validated['title'])) {
+                $dataToUpdate['title'] = $validated['title'];
+            }
+            
+            if (isset($validated['description'])) {
+                $dataToUpdate['description'] = $validated['description'];
+            }
+            
+            if (isset($validated['ingredients'])) {
+                $dataToUpdate['ingredients'] = $validated['ingredients'];
+            }
 
             if (isset($validated['imagen'])) {
                 try {
@@ -87,28 +102,27 @@ class PostService
                         }
                     }
                     
-                    // Subir nueva imagen a Cloudinary
-                    $uploadedFile = Cloudinary::upload($validated['imagen']->getRealPath(), [
-                        'folder' => 'posts',
-                        'transformation' => [
-                            'quality' => 'auto',
-                            'fetch_format' => 'auto',
-                        ]
+                    $uploadResult = Cloudinary::upload($validated['imagen']->getRealPath(), [
+                        'folder' => 'posts'
                     ]);
                     
-                    if (!$uploadedFile || !$uploadedFile->getSecurePath()) {
+                    if (!isset($uploadResult['secure_url'])) {
                         throw new \Exception('Error al obtener la URL de Cloudinary');
                     }
                     
-                    $validated['imagen'] = $uploadedFile->getSecurePath();
+                    $dataToUpdate['imagen'] = $uploadResult['secure_url'];
                 } catch (\Exception $e) {
                     Log::error('Error uploading to Cloudinary: ' . $e->getMessage());
                     throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
                 }
             }
 
-            $post->update($validated);
+            // Realizar la actualización solo si hay datos para actualizar
+            if (!empty($dataToUpdate)) {
+                $post->update($dataToUpdate);
+            }
 
+            // Recargar el post con sus relaciones
             return Post::with(['user', 'likedBy' => function($query) {
                     $query->select('users.id', 'users.name');
                 }])
