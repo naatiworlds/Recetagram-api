@@ -73,80 +73,110 @@ class PostService
     }
 
     public function updatePost($id, array $validated)
-    {
-        try {
-            $post = Post::findOrFail($id);
-            
-            // Debug log para ver los datos
-            Log::info('Datos actuales del post:', [
-                'post_actual' => $post->toArray()
-            ]);
-            Log::info('Datos recibidos para actualizar:', [
-                'validated' => $validated
-            ]);
+{
+    try {
+        $post = Post::findOrFail($id);
+        
+        // Debug log para ver los datos
+        Log::info('Datos actuales del post:', [
+            'post_actual' => $post->toArray()
+        ]);
+        Log::info('Datos recibidos para actualizar:', [
+            'validated' => $validated
+        ]);
 
-            if ($post->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
-                throw new \Exception('No tienes permiso para actualizar este post');
-            }
-
-            // Preparar los datos a actualizar
-            $dataToUpdate = [];
-            
-            if (isset($validated['title'])) {
-                $dataToUpdate['title'] = $validated['title'];
-                Log::info('Comparación de títulos:', [
-                    'titulo_actual' => $post->title,
-                    'titulo_nuevo' => $validated['title'],
-                    'son_diferentes' => $post->title !== $validated['title']
-                ]);
-            }
-            
-            if (isset($validated['description'])) {
-                $dataToUpdate['description'] = $validated['description'];
-            }
-            
-            if (isset($validated['ingredients'])) {
-                $dataToUpdate['ingredients'] = $validated['ingredients'];
-            }
-
-            // Debug log para ver qué datos se van a actualizar
-            Log::info('Datos que se van a actualizar:', [
-                'dataToUpdate' => $dataToUpdate
-            ]);
-
-            // Si no hay cambios, devolver el post actual
-            if (empty($dataToUpdate)) {
-                Log::info('No hay datos para actualizar');
-                throw new \Exception('No se proporcionaron datos para actualizar');
-            }
-
-            // Intentar actualizar
-            $updated = $post->update($dataToUpdate);
-            
-            if (!$updated) {
-                throw new \Exception('No se pudo actualizar el post');
-            }
-
-            Log::info('Post actualizado correctamente');
-
-            return Post::with([
-                'user' => function($query) {
-                    $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_private', 'is_public');
-                },
-                'likedBy' => function($query) {
-                    $query->select('users.id', 'users.name')
-                        ->withPivot('post_id', 'user_id');
-                }
-            ])
-            ->withCount(['likes', 'comments'])
-            ->findOrFail($post->id);
-
-        } catch (\Exception $e) {
-            Log::error('Error in updatePost: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-            throw $e;
+        if ($post->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            throw new \Exception('No tienes permiso para actualizar este post');
         }
+
+        // Preparar los datos a actualizar
+        $dataToUpdate = [];
+        
+        if (isset($validated['title'])) {
+            $dataToUpdate['title'] = $validated['title'];
+            Log::info('Comparación de títulos:', [
+                'titulo_actual' => $post->title,
+                'titulo_nuevo' => $validated['title'],
+                'son_diferentes' => $post->title !== $validated['title']
+            ]);
+        }
+        
+        if (isset($validated['description'])) {
+            $dataToUpdate['description'] = $validated['description'];
+        }
+        
+        if (isset($validated['ingredients'])) {
+            $dataToUpdate['ingredients'] = $validated['ingredients'];
+        }
+        
+        // Agregar el manejo de la imagen
+        if (isset($validated['imagen'])) {
+            try {
+                // Si existe una imagen anterior, eliminarla de Cloudinary
+                if ($post->imagen) {
+                    $oldPublicId = $this->getPublicIdFromUrl($post->imagen);
+                    if ($oldPublicId) {
+                        Cloudinary::destroy($oldPublicId);
+                    }
+                }
+                
+                // Subir la nueva imagen a Cloudinary
+                $uploadResult = Cloudinary::upload($validated['imagen']->getRealPath(), [
+                    'folder' => 'posts'
+                ]);
+                
+                // Obtener la URL segura usando el método getSecureUrl()
+                $secureUrl = $uploadResult->getSecureUrl();
+                if (!$secureUrl) {
+                    throw new \Exception('Error al obtener la URL de Cloudinary');
+                }
+                
+                $dataToUpdate['imagen'] = $secureUrl;
+            } catch (\Exception $e) {
+                Log::error('Error uploading to Cloudinary: ' . $e->getMessage());
+                throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
+            }
+        }
+
+        // Debug log para ver qué datos se van a actualizar
+        Log::info('Datos que se van a actualizar:', [
+            'dataToUpdate' => $dataToUpdate
+        ]);
+
+        // Si no hay cambios, devolver error
+        if (empty($dataToUpdate)) {
+            Log::info('No hay datos para actualizar');
+            throw new \Exception('No se proporcionaron datos para actualizar');
+        }
+
+        // Intentar actualizar
+        $updated = $post->update($dataToUpdate);
+        
+        if (!$updated) {
+            throw new \Exception('No se pudo actualizar el post');
+        }
+
+        Log::info('Post actualizado correctamente');
+
+        return Post::with([
+            'user' => function($query) {
+                $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_private', 'is_public');
+            },
+            'likedBy' => function($query) {
+                $query->select('users.id', 'users.name')
+                    ->withPivot('post_id', 'user_id');
+            }
+        ])
+        ->withCount(['likes', 'comments'])
+        ->findOrFail($post->id);
+
+    } catch (\Exception $e) {
+        Log::error('Error in updatePost: ' . $e->getMessage());
+        Log::error($e->getTraceAsString());
+        throw $e;
     }
+}
+
 
     private function getPublicIdFromUrl($url)
     {
