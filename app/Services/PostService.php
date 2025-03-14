@@ -77,6 +77,14 @@ class PostService
         try {
             $post = Post::findOrFail($id);
             
+            // Debug log para ver los datos
+            Log::info('Datos actuales del post:', [
+                'post_actual' => $post->toArray()
+            ]);
+            Log::info('Datos recibidos para actualizar:', [
+                'validated' => $validated
+            ]);
+
             if ($post->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
                 throw new \Exception('No tienes permiso para actualizar este post');
             }
@@ -86,6 +94,11 @@ class PostService
             
             if (isset($validated['title'])) {
                 $dataToUpdate['title'] = $validated['title'];
+                Log::info('Comparación de títulos:', [
+                    'titulo_actual' => $post->title,
+                    'titulo_nuevo' => $validated['title'],
+                    'son_diferentes' => $post->title !== $validated['title']
+                ]);
             }
             
             if (isset($validated['description'])) {
@@ -96,44 +109,27 @@ class PostService
                 $dataToUpdate['ingredients'] = $validated['ingredients'];
             }
 
-            if (isset($validated['imagen'])) {
-                try {
-                    if ($post->imagen) {
-                        $oldPublicId = $this->getPublicIdFromUrl($post->imagen);
-                        if ($oldPublicId) {
-                            Cloudinary::destroy($oldPublicId);
-                        }
-                    }
-                    
-                    $uploadResult = Cloudinary::upload($validated['imagen']->getRealPath(), [
-                        'folder' => 'posts'
-                    ]);
-                    
-                    if (!isset($uploadResult['secure_url'])) {
-                        throw new \Exception('Error al obtener la URL de Cloudinary');
-                    }
-                    
-                    $dataToUpdate['imagen'] = $uploadResult['secure_url'];
-                } catch (\Exception $e) {
-                    Log::error('Error uploading to Cloudinary: ' . $e->getMessage());
-                    throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
-                }
-            }
+            // Debug log para ver qué datos se van a actualizar
+            Log::info('Datos que se van a actualizar:', [
+                'dataToUpdate' => $dataToUpdate
+            ]);
 
-            // Verificar si hay datos para actualizar
+            // Si no hay cambios, devolver el post actual
             if (empty($dataToUpdate)) {
+                Log::info('No hay datos para actualizar');
                 throw new \Exception('No se proporcionaron datos para actualizar');
             }
 
-            // Intentar actualizar y verificar si se realizó con éxito
+            // Intentar actualizar
             $updated = $post->update($dataToUpdate);
             
             if (!$updated) {
                 throw new \Exception('No se pudo actualizar el post');
             }
 
-            // Recargar el post con todas sus relaciones
-            $updatedPost = Post::with([
+            Log::info('Post actualizado correctamente');
+
+            return Post::with([
                 'user' => function($query) {
                     $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_private', 'is_public');
                 },
@@ -144,8 +140,6 @@ class PostService
             ])
             ->withCount(['likes', 'comments'])
             ->findOrFail($post->id);
-
-            return $updatedPost;
 
         } catch (\Exception $e) {
             Log::error('Error in updatePost: ' . $e->getMessage());
