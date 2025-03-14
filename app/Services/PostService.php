@@ -122,12 +122,23 @@ class PostService
                 $post->update($dataToUpdate);
             }
 
-            // Recargar el post con sus relaciones
-            return Post::with(['user', 'likedBy' => function($query) {
-                    $query->select('users.id', 'users.name');
-                }])
-                ->withCount(['likes', 'comments'])
-                ->findOrFail($post->id);
+            // Recargar el post con todas sus relaciones y conteos
+            $updatedPost = Post::with([
+                'user' => function($query) {
+                    $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_private', 'is_public');
+                },
+                'likedBy' => function($query) {
+                    $query->select('users.id', 'users.name')
+                        ->withPivot('post_id', 'user_id');
+                }
+            ])
+            ->withCount(['likes', 'comments'])
+            ->findOrFail($post->id);
+
+            // Asegurarse de que el post está fresco con los últimos datos
+            $updatedPost->refresh();
+
+            return $updatedPost;
 
         } catch (\Exception $e) {
             Log::error('Error in updatePost: ' . $e->getMessage());
@@ -138,9 +149,10 @@ class PostService
 
     private function getPublicIdFromUrl($url)
     {
-        // Extraer el public_id de la URL de Cloudinary
-        preg_match('/\/v\d+\/([^.]+)/', $url, $matches);
-        return isset($matches[1]) ? $matches[1] : null;
+        if (preg_match('/\/v\d+\/([^\/]+)\/[^\/]+$/', $url, $matches)) {
+            return 'posts/' . pathinfo($matches[1], PATHINFO_FILENAME);
+        }
+        return null;
     }
 
     public function deletePost($id)

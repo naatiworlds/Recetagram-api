@@ -96,14 +96,7 @@ class PostController extends Controller
                 }
             }
 
-            // Subir la nueva imagen a Cloudinary si existe
-            if ($request->hasFile('imagen')) {
-                $imagePath = $request->file('imagen')->getRealPath();
-                $uploadedImage = Cloudinary::upload($imagePath)->getSecureUrl();
-                $validated['imagen'] = $uploadedImage;  // Cambiar la URL de la imagen
-            }
-
-            // Actualizar el post con los datos validados
+            // Eliminar el código de subida de imagen aquí y dejar que el servicio lo maneje
             $post = $this->postService->updatePost($id, $validated);
 
             return ResponseHelper::success($post, 'Post actualizado exitosamente');
