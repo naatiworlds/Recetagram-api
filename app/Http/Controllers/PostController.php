@@ -80,38 +80,46 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Debug completo de la solicitud
-            Log::info('Request completo:', [
+            // Debug detallado del request
+            Log::info('Request detallado:', [
                 'all' => $request->all(),
-                'files' => $request->allFiles(),
-                'headers' => $request->headers->all(),
-                'method' => $request->method(),
-                'contentType' => $request->header('Content-Type'),
-                'input' => $request->input(),
-                'raw' => $request->getContent()
+                'has_file' => $request->hasFile('imagen'),
+                'post_fields' => $_POST,
+                'files' => $_FILES,
+                'content_type' => $request->header('Content-Type')
             ]);
 
+            // Recoger los datos manualmente del form-data
+            $data = [];
+            if ($request->has('title')) $data['title'] = $request->input('title');
+            if ($request->has('description')) $data['description'] = $request->input('description');
+            if ($request->hasFile('imagen')) $data['imagen'] = $request->file('imagen');
+            if ($request->has('ingredients')) $data['ingredients'] = $request->input('ingredients');
+
+            // Si no hay datos, devolver error
+            if (empty($data)) {
+                return ResponseHelper::error('No se proporcionaron datos para actualizar', 422, [
+                    'code' => 'VALIDATION_ERROR',
+                    'detail' => 'No se encontraron campos para actualizar',
+                    'debug_info' => [
+                        'request_has' => [
+                            'title' => $request->has('title'),
+                            'description' => $request->has('description'),
+                            'imagen' => $request->hasFile('imagen'),
+                            'ingredients' => $request->has('ingredients')
+                        ],
+                        'content_type' => $request->header('Content-Type')
+                    ]
+                ]);
+            }
+
+            // Validar los datos recolectados
             $validated = $request->validate([
                 'title' => 'sometimes|string|max:255',
                 'description' => 'sometimes|string',
                 'imagen' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'ingredients' => 'sometimes|string'
             ]);
-
-            // Log de los datos validados
-            Log::info('Datos validados:', ['validated' => $validated]);
-
-            if (empty($validated)) {
-                return ResponseHelper::error('No se proporcionaron datos válidos para actualizar', 422, [
-                    'code' => 'VALIDATION_ERROR',
-                    'detail' => 'La solicitud no contiene campos válidos para actualizar',
-                    'received_data' => [
-                        'request_all' => $request->all(),
-                        'request_input' => $request->input(),
-                        'content_type' => $request->header('Content-Type')
-                    ]
-                ]);
-            }
 
             // Si hay ingredientes, intentar decodificarlos
             if (isset($validated['ingredients'])) {
