@@ -55,19 +55,39 @@ class PostService
 
     public function updatePost($id, array $validated)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
 
-        if (isset($validated['imagen'])) {
-            // Eliminar la imagen anterior si existe
-            if ($post->imagen) {
-                Storage::disk('public')->delete($post->imagen);
+            if (isset($validated['imagen'])) {
+                // Eliminar la imagen anterior si existe
+                if ($post->imagen) {
+                    $oldImagePath = str_replace(config('app.url') . '/storage/', '', $post->imagen);
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+                
+                // Guardar la nueva imagen
+                $imagePath = $validated['imagen']->store('posts', 'public');
+                $validated['imagen'] = $imagePath;
             }
-            // Guardar la nueva imagen con ruta relativa
-            $validated['imagen'] = $validated['imagen']->store('posts', 'public');
-        }
 
-        $post->update($validated);
-        return $post;
+            $post->update($validated);
+
+            // Recargar el post con sus relaciones
+            $post = Post::with(['user', 'likedBy'])
+                ->withCount(['likes', 'comments'])
+                ->findOrFail($post->id);
+
+            // Asegurarnos de devolver la URL completa de la imagen
+            if ($post->imagen) {
+                $post->imagen = config('app.url') . '/storage/' . $post->imagen;
+            }
+
+            return $post;
+        } catch (\Exception $e) {
+            Log::error('Error in updatePost: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            throw $e;
+        }
     }
 
     public function deletePost($id)

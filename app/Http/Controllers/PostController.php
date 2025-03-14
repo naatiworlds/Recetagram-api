@@ -82,16 +82,24 @@ class PostController extends Controller
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string',
-                'ingredients' => 'sometimes|required|array',
-                'ingredients.*.name' => 'required_with:ingredients|string|max:255',
-                'ingredients.*.quantity' => 'required_with:ingredients|string|max:255'
+                'imagen' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'ingredients' => 'sometimes|required|string'
             ]);
 
+            // Decodificar los ingredientes si están presentes
+            if (isset($validated['ingredients'])) {
+                $validated['ingredients'] = json_decode($validated['ingredients'], true);
+                
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception('Invalid ingredients format');
+                }
+            }
+
             $post = $this->postService->updatePost($id, $validated);
-            return ResponseHelper::success($post, 'Post updated successfully');
+            return ResponseHelper::success($post, 'Post actualizado exitosamente');
         } catch (\Exception $e) {
             Log::error('Error updating post: ' . $e->getMessage());
-            return ResponseHelper::error('Failed to update post', 500);
+            return ResponseHelper::error('Error al actualizar el post: ' . $e->getMessage(), 500);
         }
     }
 
