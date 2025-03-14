@@ -80,6 +80,15 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Debug completo de la solicitud
+            Log::info('Request completo:', [
+                'all' => $request->all(),
+                'files' => $request->allFiles(),
+                'headers' => $request->headers->all(),
+                'method' => $request->method(),
+                'contentType' => $request->header('Content-Type')
+            ]);
+
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string',
@@ -87,11 +96,30 @@ class PostController extends Controller
                 'ingredients' => 'sometimes|required|string'
             ]);
 
+            // Log de los datos validados
+            Log::info('Datos validados:', ['validated' => $validated]);
+
+            // Si hay ingredientes, intentar decodificarlos
             if (isset($validated['ingredients'])) {
-                $validated['ingredients'] = json_decode($validated['ingredients'], true);
-                
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return ResponseHelper::error('Formato de ingredientes inválido', 422);
+                try {
+                    $validated['ingredients'] = json_decode($validated['ingredients'], true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $error = [
+                            'code' => 'INVALID_JSON',
+                            'detail' => json_last_error_msg(),
+                            'data' => $validated['ingredients']
+                        ];
+                        Log::error('Error decodificando ingredients:', $error);
+                        return ResponseHelper::error('Formato de ingredientes inválido', 422, $error);
+                    }
+                } catch (\Exception $e) {
+                    $error = [
+                        'code' => 'JSON_PROCESSING_ERROR',
+                        'detail' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ];
+                    Log::error('Error procesando ingredients:', $error);
+                    return ResponseHelper::error('Error procesando ingredientes', 422, $error);
                 }
             }
 
@@ -99,23 +127,33 @@ class PostController extends Controller
                 $post = $this->postService->updatePost($id, $validated);
                 return ResponseHelper::success($post, 'Post actualizado exitosamente');
             } catch (\Exception $e) {
-                $errorMessage = $e->getMessage();
-                
-                if (str_contains($errorMessage, 'No tienes permiso')) {
-                    return ResponseHelper::error($errorMessage, 403);
-                } elseif (str_contains($errorMessage, 'No se proporcionaron datos')) {
-                    return ResponseHelper::error($errorMessage, 422);
-                } elseif (str_contains($errorMessage, 'No se pudo actualizar')) {
-                    return ResponseHelper::error($errorMessage, 400);
-                }
-                
-                return ResponseHelper::error('Error al actualizar el post: ' . $errorMessage, 500);
+                $error = [
+                    'code' => 'UPDATE_ERROR',
+                    'detail' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'validated_data' => $validated,
+                    'request_data' => $request->all()
+                ];
+                Log::error('Error en PostService:', $error);
+                return ResponseHelper::error($e->getMessage(), 500, $error);
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return ResponseHelper::error($e->errors(), 422);
+            $error = [
+                'code' => 'VALIDATION_ERROR',
+                'detail' => $e->errors(),
+                'request_data' => $request->all()
+            ];
+            Log::error('Error de validación:', $error);
+            return ResponseHelper::error($e->errors(), 422, $error);
         } catch (\Exception $e) {
-            Log::error('Error updating post: ' . $e->getMessage());
-            return ResponseHelper::error('Error inesperado al actualizar el post', 500);
+            $error = [
+                'code' => 'UNEXPECTED_ERROR',
+                'detail' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ];
+            Log::error('Error general:', $error);
+            return ResponseHelper::error('Error inesperado al actualizar el post', 500, $error);
         }
     }
 

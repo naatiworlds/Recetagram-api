@@ -13,12 +13,14 @@ class ResponseHelper
         ], $code);
     }
 
-    public static function error($message = 'Error', $code = 400, $errors = null)
+    public static function error($message, $code = 400, $errors = null)
     {
         return response()->json([
             'status' => 'error',
             'message' => $message,
-            'errors' => $errors
+            'errors' => $errors,
+            'timestamp' => now()->toIso8601String(),
+            'request_id' => request()->id() ?? uniqid(),
         ], $code);
     }
 }
