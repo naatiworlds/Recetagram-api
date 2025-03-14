@@ -122,10 +122,20 @@ class PostService
                 
                 // Subir la nueva imagen a Cloudinary
                 $uploadResult = Cloudinary::upload($validated['imagen']->getRealPath(), [
-                    'folder' => 'posts'
+                    'folder' => 'posts',
+                    'transformation' => [
+                        'quality' => 'auto',
+                        'fetch_format' => 'auto'
+                    ]
                 ]);
                 
-                // Obtener la URL segura usando el método getSecurePath()
+                // Debug para ver qué devuelve Cloudinary
+                Log::info('Cloudinary upload result:', [
+                    'result' => $uploadResult,
+                    'methods' => get_class_methods($uploadResult)
+                ]);
+
+                // Obtener la URL segura
                 $secureUrl = $uploadResult->getSecurePath();
                 if (!$secureUrl) {
                     throw new \Exception('Error al obtener la URL de Cloudinary');
