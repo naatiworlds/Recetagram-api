@@ -61,8 +61,7 @@ class PostService
             if (isset($validated['imagen'])) {
                 // Eliminar la imagen anterior si existe
                 if ($post->imagen) {
-                    $oldImagePath = str_replace(config('app.url') . '/storage/', '', $post->imagen);
-                    Storage::disk('public')->delete($oldImagePath);
+                    Storage::disk('public')->delete($post->imagen);
                 }
                 
                 // Guardar la nueva imagen
@@ -79,7 +78,7 @@ class PostService
 
             // Asegurarnos de devolver la URL completa de la imagen
             if ($post->imagen) {
-                $post->imagen = config('app.url') . '/storage/' . $post->imagen;
+                $post->imagen = '/storage/' . $post->imagen;
             }
 
             return $post;
