@@ -17,11 +17,11 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
-        'https://recetagram.netlify.app/,localhost:5173,127.0.0.1,127.0.0.1:8000,::1',
+        'https://recetagram.netlify.app/,http://213.194.146.211:5173,127.0.0.1,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort()
     ))),
 
-    /*
+    /*  
     |--------------------------------------------------------------------------
     | Sanctum Guards
     |--------------------------------------------------------------------------
