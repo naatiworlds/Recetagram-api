@@ -2,9 +2,6 @@
 
 echo "Running composer"
 composer install --no-dev --working-dir=/var/www/html
-
-php -m | grep -i pdo_mysql || echo "❌ Driver pdo_mysql no está disponible"
-
 # Crear enlace simbólico para el storage
 php artisan storage:link
 # Asegurar permisos correctos
