@@ -47,9 +47,15 @@ class NotificationController extends Controller
     {
         try {
             $userId = auth()->user()->id;
-            $result = $this->notificationService->markAllAsRead($userId);
+            // Obtiene el número de filas actualizadas
+            $updated = $this->notificationService->markAllAsRead($userId);
 
-            return ResponseHelper::success($result, 'Todas las notificaciones han sido marcadas como leídas');
+            // Verifica si se actualizaron notificaciones
+            if ($updated) {
+                return ResponseHelper::success([], 'Todas las notificaciones han sido marcadas como leídas');
+            } else {
+                return ResponseHelper::success([], 'No hay notificaciones nuevas para marcar como leídas');
+            }
         } catch (\Exception $e) {
             return ResponseHelper::error('Error al actualizar las notificaciones', 500);
         }
