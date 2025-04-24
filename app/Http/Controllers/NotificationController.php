@@ -42,4 +42,16 @@ class NotificationController extends Controller
             return ResponseHelper::error('Error marking notification as read', 500);
         }
     }
+
+    public function markAllAsRead()
+    {
+        try {
+            $userId = auth()->user()->id;
+            $result = $this->notificationService->markAllAsRead($userId);
+
+            return ResponseHelper::success($result, 'Todas las notificaciones han sido marcadas como leídas');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Error al actualizar las notificaciones', 500);
+        }
+    }
 }

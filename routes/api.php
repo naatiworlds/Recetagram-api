@@ -67,6 +67,7 @@ Route::prefix('v1')->group(function () {
         // Rutas de notificaciones
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::patch('/notifications/markAllRead', [NotificationController::class, 'markAllAsRead']);
 
         // Rutas de follows
         Route::post('/users/{user}/follow', [FollowController::class, 'follow']);
