@@ -207,9 +207,13 @@ class PostService
 
         $post->delete();
     }
+
     public function getPostsByUserId($userId)
     {
-        return Post::where('user_id', $userId)->get();
+        return Post::where('user_id', $userId)
+            ->with(['user'])
+            ->withCount(['likes', 'comments'])
+            ->get();
     }
 
     public function getFollowingPosts($userId)
