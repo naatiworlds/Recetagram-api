@@ -22,7 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'is_private',
+        'is_public', // Se reemplaza is_private por is_public
     ];
 
     /**
@@ -43,7 +43,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'is_private' => 'boolean',
+        'is_public' => 'boolean', // Se usa solo is_public
     ];
 
     public function isAdmin(): bool
