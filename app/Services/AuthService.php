@@ -65,16 +65,13 @@ class AuthService
         }
     }
 
-    public function updateUser($id, array $data)
+    public function updateUser($userId, array $data)
     {
-        $user = User::findOrFail($id);
-        
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        }
+        $user = User::findOrFail($userId);
 
-        if (isset($data['is_private'])) {
-            $data['is_private'] = (bool) $data['is_private'];
+        // Si se envía password, hay que hashearlo
+        if (isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
         }
 
         $user->update($data);

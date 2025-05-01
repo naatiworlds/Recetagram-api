@@ -107,14 +107,19 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'string|max:255|nullable',
-                'email' => 'email|unique:users,email,' . $user->id . '|nullable',
-                'password' => 'string|min:6|nullable',
-                'is_private' => 'boolean|nullable'
+                'name'      => 'string|max:255|nullable',
+                'email'     => 'email|unique:users,email,' . $user->id . '|nullable',
+                'password'  => 'string|min:6|nullable',
+                'is_public' => 'boolean|nullable'
             ]);
 
-            $updated = $this->authService->updateUser($user->id, $validated);
-            return ResponseHelper::success($updated, 'Usuario actualizado exitosamente');
+            // Convertir a booleano en caso de recibir "false" o "true" como string
+            if (isset($validated['is_public'])) {
+                $validated['is_public'] = filter_var($validated['is_public'], FILTER_VALIDATE_BOOLEAN);
+            }
+
+            $updatedUser = $this->authService->updateUser($user->id, $validated);
+            return ResponseHelper::success($updatedUser, 'Usuario actualizado exitosamente');
         } catch (\Exception $e) {
             \Log::error('Error updating user: ' . $e->getMessage());
             return ResponseHelper::error('Error al actualizar el usuario: ' . $e->getMessage(), 500);
@@ -136,21 +141,21 @@ class AuthController extends Controller
         try {
             $user = $request->user();
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Usuario recuperado exitosamente',
-                'data' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'is_private' => $user->is_private,
+                'data'    => [
+                    'id'         => $user->id,
+                    'name'       => $user->name,
+                    'email'      => $user->email,
+                    'role'       => $user->role,
+                    'is_public'  => $user->is_public,
                     'created_at' => $user->created_at,
-                    'updated_at' => $user->updated_at
-                ]
+                    'updated_at' => $user->updated_at,
+                ],
             ], 200)->header('Content-Type', 'application/json');
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Error al recuperar el usuario'
             ], 500)->header('Content-Type', 'application/json');
         }
