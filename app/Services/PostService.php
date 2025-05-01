@@ -170,11 +170,11 @@ class PostService
 
         return Post::with([
             'user' => function($query) {
-                $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_private', 'is_public');
+                $query->select('id', 'name', 'email', 'role', 'created_at', 'updated_at', 'is_public');
             },
             'likedBy' => function($query) {
                 $query->select('users.id', 'users.name')
-                    ->withPivot('post_id', 'user_id');
+                      ->withPivot('post_id', 'user_id');
             }
         ])
         ->withCount(['likes', 'comments'])
