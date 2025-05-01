@@ -67,21 +67,19 @@ class AuthController extends Controller
     {
         try {
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Usuario recuperado exitosamente',
-                'data' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'is_private' => $user->is_private,
-                    'created_at' => $user->created_at,
-                    'updated_at' => $user->updated_at
-                ]
-            ], 200)->header('Content-Type', 'application/json');
+                'data'    => [
+                    'id'        => $user->id,
+                    'name'      => $user->name,
+                    'email'     => $user->email,
+                    'role'      => $user->role,
+                    'is_public' => $user->is_public,
+                ],
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Error al recuperar el usuario'
             ], 500)->header('Content-Type', 'application/json');
         }
