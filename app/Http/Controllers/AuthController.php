@@ -70,11 +70,13 @@ class AuthController extends Controller
                 'status'  => 'success',
                 'message' => 'Usuario recuperado exitosamente',
                 'data'    => [
-                    'id'        => $user->id,
-                    'name'      => $user->name,
-                    'email'     => $user->email,
-                    'role'      => $user->role,
-                    'is_public' => $user->is_public,
+                    'id'         => $user->id,
+                    'name'       => $user->name,
+                    'email'      => $user->email,
+                    'role'       => $user->role,
+                    'is_public'  => $user->is_public,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
                 ],
             ], 200);
         } catch (\Exception $e) {
