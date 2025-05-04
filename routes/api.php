@@ -78,5 +78,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/users/{user}/following', [FollowController::class, 'getFollowing']);
         Route::get('/follows/pending', [FollowController::class, 'getPendingRequests']);
         Route::get('/follows/check/{user}', [FollowController::class, 'checkStatus']);
+
+        // Nueva ruta para obtener todos los comentarios (panel de administración)
+        Route::get('/admin/comments', [CommentController::class, 'indexAll']);
     });
 });

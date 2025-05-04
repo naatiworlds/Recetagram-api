@@ -77,4 +77,17 @@ class CommentController extends Controller
             return ResponseHelper::error('Error al eliminar el comentario', 500);
         }
     }
-} 
+
+    public function indexAll(Request $request)
+    {
+        try {
+            $comments = Comment::with(['user', 'post'])
+                ->latest()
+                ->get();
+
+            return ResponseHelper::success($comments, 'Todos los comentarios recuperados exitosamente');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Error al recuperar todos los comentarios', 500);
+        }
+    }
+}
