@@ -20,7 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Elimina la clave "Access-Control-Allow-Origin" y define explícitamente el origen permitido:
-    'allowed_origins' => ['https://recetagram.netlify.app'],
+    'allowed_origins' => ['https://recetagram.netlify.app', 'https://s5x645qn-5173.uks1.devtunnels.ms/'],
 
     'allowed_origins_patterns' => [],
 
