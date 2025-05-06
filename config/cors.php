@@ -19,9 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
     
-    'Access-Control-Allow-Origin' => 'https://recetagram.netlify.app/',
+    'Access-Control-Allow-Origin' => '*',
 
-    'allowed_origins' => ['https://recetagram.netlify.app/'],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
