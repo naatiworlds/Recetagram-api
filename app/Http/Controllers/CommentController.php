@@ -40,6 +40,18 @@ class CommentController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Crear notificación para el dueño del post con el contenido del comentario
+            if ($post->user_id !== auth()->id()) {
+                $notificationService = new \App\Services\NotificationService();
+                $notificationService->createNotification(
+                    $post->user_id,                       // Destinatario
+                    'comment',                            // Tipo de notificación
+                    auth()->id(),                         // Usuario que comenta
+                    $post->id,                            // ID de referencia (el post)
+                    'Nuevo comentario en tu post: ' . $comment->content  // Mensaje de la notificación
+                );
+            }
+
             return ResponseHelper::success($comment, 'Comentario creado exitosamente', 201);
         } catch (\Exception $e) {
             return ResponseHelper::error('Error al crear el comentario', 500);
