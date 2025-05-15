@@ -9,6 +9,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\BatchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,5 +82,8 @@ Route::prefix('v1')->group(function () {
 
         // Nueva ruta para obtener todos los comentarios (panel de administración)
         Route::get('/admin/comments', [CommentController::class, 'indexAll']);
+
+        // Nueva ruta para procesar lotes
+        Route::post('/batch', [BatchController::class, 'processBatch']);
     });
 });
