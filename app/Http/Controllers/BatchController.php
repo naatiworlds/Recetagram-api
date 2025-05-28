@@ -46,9 +46,22 @@ class BatchController extends Controller
             if (!empty($data['likes'])) {
                 foreach ($data['likes'] as $like) {
                     $post = Post::find($like['post_id']);
-                    if ($post && !$post->likes()->where('user_id', auth()->id())->exists()) {
-                        $post->likes()->create(['user_id' => auth()->id()]);
-                        $results['likes'][] = $post->id;
+                    try {
+                        if ($post) {
+                            $existingLike = $post->likes()->where('user_id', auth()->id())->first();
+                            if ($existingLike) {
+                                // Si ya existe el like, eliminarlo (dislike)
+                                $existingLike->delete();
+                                $results['likes'][] = ['post_id' => $post->id, 'action' => 'dislike'];
+                            } else {
+                                // Si no existe el like, crearlo
+                                $post->likes()->create(['user_id' => auth()->id()]);
+                                $results['likes'][] = ['post_id' => $post->id, 'action' => 'like'];
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Error procesando like/dislike para el post ' . $post->id . ': ' . $e->getMessage());
+                        $results['likes'][] = ['post_id' => $post->id, 'action' => 'error', 'message' => $e->getMessage()];
                     }
                 }
             }
