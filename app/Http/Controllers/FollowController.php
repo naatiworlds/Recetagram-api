@@ -8,7 +8,6 @@ use App\Helpers\ResponseHelper;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 use App\Services\FollowService;
-use Illuminate\Http\Request;
 
 class FollowController extends Controller
 {
@@ -21,7 +20,7 @@ class FollowController extends Controller
         $this->followService = $followService;
     }
 
-    public function follow(Request $request, User $user)
+    public function follow(User $user)
     {
         try {
             $follower = auth()->user();
@@ -60,6 +59,16 @@ class FollowController extends Controller
 
             try {
                 // Crear notificación con follow_id
+                Log::info('Creating follow notification', [
+                    'user_id' => $user->id,
+                    'type' => $status === 'pending' ? 'follow_request' : 'new_follower',
+                    'from_user_id' => $follower->id,
+                    'follow_id' => $follow->id,
+                    'message' => $status === 'pending' 
+                        ? "{$follower->name} quiere seguirte"
+                        : "{$follower->name} ha comenzado a seguirte"
+                ]);
+
                 $this->notificationService->createNotification(
                     $user->id,
                     $status === 'pending' ? 'follow_request' : 'new_follower',

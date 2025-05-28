@@ -9,21 +9,34 @@ class NotificationService
 {
     public function createNotification($userId, $type, $fromUserId, $referenceId = null, $message = '')
     {
-        $notification = new Notification();
-        $notification->user_id = $userId;
-        $notification->type = $type;
-        $notification->from_user_id = $fromUserId;
-        $notification->message = $message;
+        try {
+            Log::info('Creating notification', [
+                'user_id' => $userId,
+                'type' => $type,
+                'from_user_id' => $fromUserId,
+                'reference_id' => $referenceId,
+                'message' => $message
+            ]);
 
-        // Asignar el ID de referencia según el tipo
-        if (in_array($type, ['like', 'comment'])) {
-            $notification->post_id = $referenceId;
-        } elseif (in_array($type, ['follow_request', 'follow_accepted', 'follow_rejected'])) {
-            $notification->follow_id = $referenceId;
+            $notification = new Notification();
+            $notification->user_id = $userId;
+            $notification->type = $type;
+            $notification->from_user_id = $fromUserId;
+            $notification->message = $message;
+
+            // Asignar el ID de referencia según el tipo
+            if (in_array($type, ['like', 'comment'])) {
+                $notification->post_id = $referenceId;
+            } elseif (in_array($type, ['follow_request', 'follow_accepted', 'follow_rejected'])) {
+                $notification->follow_id = $referenceId;
+            }
+
+            $notification->save();
+            return $notification;
+        } catch (\Exception $e) {
+            Log::error('Error creating notification: ' . $e->getMessage());
+            throw $e; // Propagar el error para que pueda ser manejado en el controlador
         }
-
-        $notification->save();
-        return $notification;
     }
 
     public function getUserNotifications($userId)
