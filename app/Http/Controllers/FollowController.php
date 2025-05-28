@@ -8,6 +8,7 @@ use App\Helpers\ResponseHelper;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 use App\Services\FollowService;
+use Illuminate\Http\Request;
 
 class FollowController extends Controller
 {
@@ -20,68 +21,41 @@ class FollowController extends Controller
         $this->followService = $followService;
     }
 
-    public function follow(User $user)
+    public function follow(Request $request, User $user)
     {
         try {
-            $follower = auth()->user();
-            
-            // Log para debugging
-            Log::info('Follow attempt', [
-                'follower_id' => $follower->id,
-                'following_id' => $user->id
+            $currentUser = auth()->user();
+
+            // Si el perfil es público, aceptar automáticamente
+            if ($user->is_public) {
+                Follow::create([
+                    'follower_id' => $currentUser->id,
+                    'following_id' => $user->id,
+                    'status' => 'accepted',
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Seguido automáticamente porque el perfil es público',
+                ], 200);
+            }
+
+            // Si el perfil es privado, crear solicitud pendiente
+            Follow::create([
+                'follower_id' => $currentUser->id,
+                'following_id' => $user->id,
+                'status' => 'pending',
             ]);
 
-            if ($follower->id === $user->id) {
-                return ResponseHelper::error('No puedes seguirte a ti mismo', 400);
-            }
-
-            // Verificar si ya existe una relación
-            $existingFollow = Follow::where('follower_id', $follower->id)
-                ->where('following_id', $user->id)
-                ->first();
-
-            if ($existingFollow) {
-                if ($existingFollow->status === 'accepted') {
-                    return ResponseHelper::error('Ya sigues a este usuario', 400);
-                }
-                return ResponseHelper::error('Ya tienes una solicitud pendiente', 400);
-            }
-
-            // Determinar el estado basado en la privacidad del usuario
-            $status = $user->is_private ? 'pending' : 'accepted';
-            
-            // Crear el follow
-            $follow = new Follow();
-            $follow->follower_id = $follower->id;
-            $follow->following_id = $user->id;
-            $follow->status = $status;
-            $follow->save();
-
-            try {
-                // Crear notificación con follow_id
-                $this->notificationService->createNotification(
-                    $user->id,
-                    $status === 'pending' ? 'follow_request' : 'new_follower',
-                    $follower->id,
-                    $follow->id, // Aquí enviamos el follow_id en lugar de null
-                    $status === 'pending' 
-                        ? "{$follower->name} quiere seguirte"
-                        : "{$follower->name} ha comenzado a seguirte"
-                );
-            } catch (\Exception $e) {
-                Log::error('Error creating follow notification: ' . $e->getMessage());
-                // Continuar incluso si la notificación falla
-            }
-
-            return ResponseHelper::success([
-                'status' => $status,
-                'follow_id' => $follow->id
-            ], $status === 'pending' ? 'Solicitud enviada' : 'Siguiendo');
-
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Solicitud de seguimiento enviada porque el perfil es privado',
+            ], 200);
         } catch (\Exception $e) {
-            Log::error('Error in follow action: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-            return ResponseHelper::error('Error al procesar la solicitud: ' . $e->getMessage(), 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al procesar la solicitud de seguimiento',
+            ], 500);
         }
     }
 
