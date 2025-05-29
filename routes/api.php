@@ -11,7 +11,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\BatchController;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
