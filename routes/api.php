@@ -47,7 +47,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/users', [AuthController::class, 'index']);
         Route::get('/users/{user}', [AuthController::class, 'show']);
-        Route::post('/users', [AuthController::class, 'store']);
+        Route::post('/users', [AuthController::class, 'store']);    
         Route::put('/users/{user}', [AuthController::class, 'update']);
         Route::delete('/users/{user}', [AuthController::class, 'destroy']);
         Route::get('/me', [AuthController::class, 'me']);

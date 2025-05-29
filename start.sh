@@ -17,6 +17,9 @@ echo "Caching routes..."
 php artisan route:cache
 
 echo "Running migrations..."
+php artisan config:clear
+php artisan cache:clear
+composer dump-autoload
 php artisan migrate --force
 
 # Ejecutar el seeder para crear el usuario administrador
