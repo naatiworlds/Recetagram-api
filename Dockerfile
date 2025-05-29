@@ -12,6 +12,7 @@ RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/co
     php82-fpm \
     php82-pdo \
     php82-pdo_pgsql \
+    php82-pdo_mysql \
     php82-tokenizer \
     php82-xml \
     php82-dom \
