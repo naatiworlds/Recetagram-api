@@ -24,7 +24,7 @@ php artisan migrate --force
 
 # Ejecutar el seeder para crear el usuario administrador
 echo "Running AdminSeeder..."
-php artisan db:seed --class=AdminSeeder
+php artisan db:seed --class=AdminSeeder --force
 
 # Reemplazar el puerto en la configuración de nginx
 sed -i "s/\${PORT:-80}/$PORT/g" /etc/nginx/nginx.conf
