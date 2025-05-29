@@ -10,6 +10,8 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\BatchController;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,11 +28,23 @@ Route::prefix('v1')->group(function () {
     // Rutas públicas
     Route::post('/register', [AuthController::class, 'store']);
     Route::post('/login', [AuthController::class, 'login'])->name('login');
-    
-    // Rutas de posts públicas - NOTA EL ORDEN
+
+
     Route::get('/posts/public', [PostController::class, 'getPublicPosts']); // Primero rutas específicas públicas
     Route::get('/posts', [PostController::class, 'index']);
-    
+    // routes/web.php o routes/api.php
+
+
+    Route::get('/db-test', function () {
+        try {
+            DB::connection()->getPdo();
+            return '✅ Conexión exitosa a la base de datos.';
+        } catch (\Exception $e) {
+            return '❌ Error de conexión: ' . $e->getMessage();
+        }
+    });
+
+
     Route::middleware('auth:sanctum')->group(function () {
         // Rutas de posts autenticadas
         Route::get('/posts/following', [PostController::class, 'getFollowingPosts']); // Primero rutas específicas autenticadas
@@ -47,7 +61,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/users', [AuthController::class, 'index']);
         Route::get('/users/{user}', [AuthController::class, 'show']);
-        Route::post('/users', [AuthController::class, 'store']);    
+        Route::post('/users', [AuthController::class, 'store']);
         Route::put('/users/{user}', [AuthController::class, 'update']);
         Route::delete('/users/{user}', [AuthController::class, 'destroy']);
         Route::get('/me', [AuthController::class, 'me']);
