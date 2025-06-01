@@ -11,10 +11,10 @@ mkdir -p /var/www/html/storage/framework/cache/data
 mkdir -p /var/www/html/bootstrap/cache
 
 # Asegurar permisos correctos
-chown -R nobody:nobody /var/www/html/storage
-chmod -R 755 /var/www/html/storage
-chown -R nobody:nobody /var/www/html/bootstrap/cache
-chmod -R 755 /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage
+chmod -R 775 /var/www/html/storage
+chown -R www-data:www-data /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/bootstrap/cache
 
 echo "Caching config..."
 php artisan config:clear
