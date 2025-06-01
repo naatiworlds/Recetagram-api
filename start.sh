@@ -1,42 +1,30 @@
 #!/bin/sh
 
-echo "Running composer..."
-composer install --no-dev --optimize-autoloader --working-dir=/var/www/html
-
-# Crear enlace simbólico para storage
+echo "Running composer"
+composer install --no-dev --working-dir=/var/www/html
+# Crear enlace simbólico para el storage
 php artisan storage:link
-
-# Verificar y crear directorios necesarios
-mkdir -p /var/www/html/storage/framework/cache/data
-mkdir -p /var/www/html/bootstrap/cache
-
 # Asegurar permisos correctos
-chown -R www-data:www-data /var/www/html/storage
-chmod -R 775 /var/www/html/storage
-chown -R www-data:www-data /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/bootstrap/cache
+chown -R nobody:nobody /var/www/html/storage
+chmod -R 755 /var/www/html/storage
+chown -R nobody:nobody /var/www/html/bootstrap/cache
+chmod -R 755 /var/www/html/bootstrap/cache
 
 echo "Caching config..."
-php artisan config:clear
-php artisan cache:clear
 php artisan config:cache
-php artisan route:cache
 
-# Verificar conexión a PostgreSQL antes de migrar
-echo "Checking database connection..."
-php artisan tinker --execute="DB::connection()->getPdo();" || { echo "Database connection failed!"; exit 1; }
+echo "Caching routes..."
+php artisan route:cache
 
 echo "Running migrations..."
+php artisan config:clear
+php artisan cache:clear
+composer dump-autoload
 php artisan migrate --force
 
-# Restaurar caché después de migraciones
-php artisan config:cache
-php artisan route:cache
 
 # Reemplazar el puerto en la configuración de nginx
-echo "Configuring Nginx..."
-echo "Using PORT: $PORT"
 sed -i "s/\${PORT:-80}/$PORT/g" /etc/nginx/nginx.conf
 
-echo "Starting supervisord..."
+echo "Starting supervisord"
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
