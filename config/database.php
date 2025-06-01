@@ -65,18 +65,16 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => env('DB_HOST', 'dpg-d8s1k3u3jp1c78a7vrv8-a.frankfurt-postgres.render.com'),
             'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            'database' => env('DB_DATABASE', 'reestagram_21km'),
+            'username' => env('DB_USERNAME', 'admin'),
+            'password' => env('DB_PASSWORD', '2761uMw1rzkE1K15ZkdPEn1IPJnNXoa'),
             'charset' => 'utf8',
             'prefix' => '',
-            'prefix_indexes' => true,
-            'search_path' => 'public',
-            'sslmode' => 'require',
+            'schema' => 'public',
         ],
+
 
         'sqlsrv' => [
             'driver' => 'sqlsrv',
@@ -125,7 +123,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [
