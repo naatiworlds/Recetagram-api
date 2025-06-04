@@ -23,6 +23,10 @@ php artisan migrate --force
 echo "Running AdminSeeder..."
 php artisan db:seed --class=AdminSeeder --force
 
+# Ejecutar el seeder de datos de ejemplo
+echo "Running ExampleDataSeeder..."
+php artisan db:seed --class=UsersAndPostsSeeder
+
 # Reemplazar el puerto en la configuración de nginx
 sed -i "s/\${PORT:-80}/$PORT/g" /etc/nginx/nginx.conf
 
