@@ -19,13 +19,10 @@ php artisan route:cache
 echo "Running migrations..."
 php artisan migrate --force
 
-# Ejecutar el seeder de administración
-echo "Running AdminSeeder..."
-php artisan db:seed --class=AdminSeeder --force
 
 # Ejecutar el seeder de datos de ejemplo
-echo "Running ExampleDataSeeder..."
-php artisan db:seed --class=UsersAndPostsSeeder
+echo "Running UsersAndPostsSeeder..."
+php artisan db:seed --class=UsersAndPostsSeeder --force
 
 # Reemplazar el puerto en la configuración de nginx
 sed -i "s/\${PORT:-80}/$PORT/g" /etc/nginx/nginx.conf
