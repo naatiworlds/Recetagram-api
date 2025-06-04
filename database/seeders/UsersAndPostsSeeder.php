@@ -22,7 +22,7 @@ class UsersAndPostsSeeder extends Seeder
         $users->each(function ($user) {
             Post::factory(5)->create([
                 'user_id' => $user->id,
-                'image' => 'https://via.placeholder.com/640x480.png?text=Example+Image',
+                'imagen' => 'https://via.placeholder.com/640x480.png?text=Example+Image',
                 'ingredients' => json_encode(['flour', 'sugar', 'eggs', 'milk', 'butter']),
             ]);
         });
