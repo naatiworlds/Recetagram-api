@@ -22,8 +22,14 @@ class UsersAndPostsSeeder extends Seeder
         $users->each(function ($user) {
             Post::factory(5)->create([
                 'user_id' => $user->id,
-                'imagen' => 'https://via.placeholder.com/640x480.png?text=Example+Image',
-                'ingredients' => json_encode(['flour', 'sugar', 'eggs', 'milk', 'butter']),
+                'image' => 'https://picsum.photos/640/480?random=' . rand(1, 1000), // URL válida para imágenes aleatorias
+                'ingredients' => json_encode([
+                    ['name' => 'Ingrediente 1', 'quantity' => '1 taza'],
+                    ['name' => 'Ingrediente 2', 'quantity' => '2 cucharadas'],
+                    ['name' => 'Ingrediente 3', 'quantity' => '3 piezas'],
+                    ['name' => 'Ingrediente 4', 'quantity' => '500 ml'],
+                    ['name' => 'Ingrediente 5', 'quantity' => '1 cucharadita'],
+                ]), // Formato requerido para los ingredientes
             ]);
         });
     }
