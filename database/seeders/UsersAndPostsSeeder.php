@@ -22,7 +22,7 @@ class UsersAndPostsSeeder extends Seeder
         $users->each(function ($user) {
             Post::factory(5)->create([
                 'user_id' => $user->id,
-                'image' => 'https://picsum.photos/640/480?random=' . rand(1, 1000), // URL válida para imágenes aleatorias
+                'imagen' => 'https://picsum.photos/640/480?random=' . rand(1, 1000), // URL válida para imágenes aleatorias
                 'ingredients' => json_encode([
                     ['name' => 'Ingrediente 1', 'quantity' => '1 taza'],
                     ['name' => 'Ingrediente 2', 'quantity' => '2 cucharadas'],
