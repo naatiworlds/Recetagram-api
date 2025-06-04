@@ -17,9 +17,11 @@ class PostFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence,
-            'content' => $this->faker->paragraph,
             'user_id' => null, // Se asignará en el seeder
+            'title' => $this->faker->sentence,
+            'description' => $this->faker->paragraph,
+            'imagen' => $this->faker->imageUrl(640, 480, 'food', true, 'Post Image'), // Generar una URL de imagen aleatoria
+            'ingredients' => json_encode($this->faker->words(5)), // Generar una lista de 5 ingredientes aleatorios
         ];
     }
 }
