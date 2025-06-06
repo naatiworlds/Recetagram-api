@@ -37,9 +37,18 @@ class CheckTokenExpiration
 
             if ($now->greaterThan($halfTime) && !$token->warning_sent) {
                 // Se calcula el tiempo restante hasta que expire el token
-                $timeLeft = $now->diffInSeconds($expirationTime);
+                $timeLeft = $now->diff($expirationTime);
+
+                // Formatear el tiempo restante en horas, minutos y segundos
+                $formattedTimeLeft = sprintf(
+                    '%02d horas, %02d minutos y %02d segundos',
+                    $timeLeft->h,
+                    $timeLeft->i,
+                    $timeLeft->s
+                );
+
                 Log::info("Enviando notificación de expiración de token para el usuario ID: " . $request->user()->id, [
-                    'Tiempo restante (segundos)' => $timeLeft
+                    'Tiempo restante' => $formattedTimeLeft
                 ]);
 
                 $this->notificationService->createNotification(
@@ -47,7 +56,7 @@ class CheckTokenExpiration
                     'token_expiration',
                     null,
                     null,
-                    "Como medida de seguridad ante el robo de su cuenta, su sesión será reestablecida en {$timeLeft} segundos. Por favor, inicie sesión nuevamente."
+                    "Como medida de seguridad ante el robo de su cuenta, su sesión será reestablecida en {$formattedTimeLeft}. Por favor, inicie sesión nuevamente."
                 );
 
                 $token->warning_sent = true;
@@ -66,4 +75,4 @@ class CheckTokenExpiration
 
         return $next($request);
     }
-} 
+}
