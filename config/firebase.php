@@ -52,7 +52,7 @@ return [
 
             'credentials' => [
                 'type' => env('FIREBASE_TYPE'),
-                'project_id' => env('recetagram-d8ba9'),
+                'project_id' => 'recetagram-d8ba9',
                 'private_key_id' => env('FIREBASE_PRIVATE_KEY_ID'),
                 'private_key' => str_replace("\\n", "\n", env('FIREBASE_PRIVATE_KEY')),
                 'client_email' => env('FIREBASE_CLIENT_EMAIL'),
