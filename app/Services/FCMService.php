@@ -42,7 +42,8 @@ class FCMService
                 'tokens' => $tokens,
             ];
 
-            $this->messaging->sendMulticast($message);
+            // Se agrega 'false' como segundo argumento para indicar que no es una validación solamente
+            $this->messaging->sendMulticast($message, false);
 
             Log::info('Notificación enviada con éxito a través de FCM.', [
                 'tokens' => $tokens,
