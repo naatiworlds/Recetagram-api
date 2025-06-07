@@ -98,5 +98,6 @@ Route::prefix('v1')->group(function () {
 
         // Nueva ruta para procesar lotes
         Route::post('/batch', [BatchController::class, 'processBatch']);
+        Route::post('/fcm-token', [AuthController::class, 'saveFcmToken']);
     });
 });

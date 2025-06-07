@@ -22,7 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'is_public', // Se reemplaza is_private por is_public
+        'is_public', // Se reemplaza is_private por is_publicç
+        'notification_tokens' => 'array',
     ];
 
     /**

@@ -3,10 +3,19 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\User;
+use App\Services\FCMService;
 use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
+    protected FCMService $fcm;
+
+    public function __construct(FCMService $fcm)
+    {
+        $this->fcm = $fcm;
+    }
+
     public function createNotification($userId, $type, $fromUserId, $referenceId = null, $message = '')
     {
         try {
@@ -32,10 +41,28 @@ class NotificationService
             }
 
             $notification->save();
+
+            // 🔥 ENVÍO FCM
+            $user = User::find($userId);
+            $tokens = $user->notification_tokens ?? []; // Asegúrate de que el usuario tenga este atributo
+
+            if (!empty($tokens)) {
+                $this->fcm->send(
+                    $tokens,
+                    'Nueva notificación',
+                    $message,
+                    [
+                        'type' => $type,
+                        'from_user_id' => $fromUserId,
+                        'reference_id' => $referenceId,
+                    ]
+                );
+            }
+
             return $notification;
         } catch (\Exception $e) {
             Log::error('Error creating notification: ' . $e->getMessage());
-            throw $e; // Propagar el error para que pueda ser manejado en el controlador
+            throw $e;
         }
     }
 
