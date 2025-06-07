@@ -31,6 +31,8 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/posts/public', [PostController::class, 'getPublicPosts']); // Primero rutas específicas públicas
     Route::get('/posts', [PostController::class, 'index']);
+    Route::post('/fcm-token', [AuthController::class, 'saveFcmToken']);
+
     // routes/web.php o routes/api.php
 
 

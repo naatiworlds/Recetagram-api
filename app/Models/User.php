@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'role',
         'is_public', // Se reemplaza is_private por is_public
+        'notification_tokens'
     ];
 
     /**
@@ -44,6 +45,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_public' => 'boolean', // Se usa solo is_public
+        'notification_tokens' => 'array',
+
     ];
 
     public function isAdmin(): bool
