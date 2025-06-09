@@ -21,7 +21,10 @@ return [
     
     'Access-Control-Allow-Origin' => '*',
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'https://recetagram-api.onrender.com',
+    ],
 
     'allowed_origins_patterns' => [],
 
