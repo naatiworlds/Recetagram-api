@@ -23,7 +23,7 @@ return [
 
     'allowed_origins' => [
         'http://localhost:5173',
-        'https://recetagram-api.onrender.com',
+        'https://recetagram.netlify.app',
     ],
 
     'allowed_origins_patterns' => [],
