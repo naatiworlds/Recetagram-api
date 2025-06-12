@@ -49,7 +49,6 @@ class FollowController extends Controller
                 'status' => $follow->status,
                 'follow_id' => $follow->id
             ], $follow->status === 'pending' ? 'Solicitud enviada' : 'Siguiendo');
-
         } catch (\Exception $e) {
             Log::error('Error in follow action: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
@@ -61,7 +60,7 @@ class FollowController extends Controller
     {
         try {
             $follow = Follow::findOrFail($followId);
-            
+
             if ($follow->following_id !== auth()->id()) {
                 return ResponseHelper::error('No autorizado', 403);
             }
@@ -92,7 +91,7 @@ class FollowController extends Controller
     {
         try {
             $follow = Follow::findOrFail($followId);
-            
+
             if ($follow->following_id !== auth()->id()) {
                 return ResponseHelper::error('No autorizado', 403);
             }
@@ -123,10 +122,10 @@ class FollowController extends Controller
     {
         try {
             $follower = auth()->user();
-            
+
             $follow = Follow::where('follower_id', $follower->id)
-                          ->where('following_id', $user->id)
-                          ->first();
+                ->where('following_id', $user->id)
+                ->first();
 
             if (!$follow) {
                 return ResponseHelper::error('No sigues a este usuario', 400);
@@ -158,10 +157,10 @@ class FollowController extends Controller
     {
         try {
             $followers = $user->followers()
-                            ->where('status', 'accepted')
-                            ->with('follower')
-                            ->get()
-                            ->pluck('follower');
+                ->where('status', 'accepted')
+                ->with('follower')
+                ->get()
+                ->pluck('follower');
 
             return ResponseHelper::success($followers, 'Seguidores recuperados exitosamente');
         } catch (\Exception $e) {
@@ -173,10 +172,10 @@ class FollowController extends Controller
     {
         try {
             $following = $user->following()
-                            ->where('status', 'accepted')
-                            ->with('following')
-                            ->get()
-                            ->pluck('following');
+                ->where('status', 'accepted')
+                ->with('following')
+                ->get()
+                ->pluck('following');
 
             return ResponseHelper::success($following, 'Seguidos recuperados exitosamente');
         } catch (\Exception $e) {
@@ -203,11 +202,20 @@ class FollowController extends Controller
     {
         try {
             $followerId = auth()->id();
+            Log::info("Checking follow status", ['follower_id' => $followerId, 'following_id' => $followingId]);
+
             $status = $this->followService->checkFollowStatus($followerId, $followingId);
+
+            Log::info("Follow status result", ['status' => $status]);
+
             return ResponseHelper::success($status, 'Estado de seguimiento recuperado exitosamente');
         } catch (\Exception $e) {
             Log::error('Error checking follow status: ' . $e->getMessage());
-            return ResponseHelper::error('Error al verificar el estado de seguimiento', 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
     }
 }
