@@ -4,18 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\NotificationService;
+use App\Services\FollowService;
 use App\Models\Post;
 use App\Models\Comment;
 use App\Models\Follow;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 class BatchController extends Controller
 {
     protected $notificationService;
+    protected $followService;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, FollowService $followService)
     {
         $this->notificationService = $notificationService;
+        $this->followService = $followService;
     }
 
     public function processBatch(Request $request)
@@ -108,14 +112,20 @@ class BatchController extends Controller
             // Procesar seguimientos
             if (!empty($data['follows'])) {
                 foreach ($data['follows'] as $followData) {
-                    $user = auth()->user();
-                    $following = Follow::firstOrCreate([
-                        'follower_id' => $user->id,
-                        'following_id' => $followData['user_id'],
-                    ], [
-                        'status' => 'pending',
-                    ]);
-                    $results['follows'][] = $following->id;
+                    try {
+                        $userToFollow = User::findOrFail($followData['user_id']);
+                        $follow = $this->followService->follow(auth()->user(), $userToFollow);
+                        $results['follows'][] = [
+                            'user_id' => $userToFollow->id,
+                            'status' => $follow->status,
+                            'follow_id' => $follow->id
+                        ];
+                    } catch (\Exception $e) {
+                        $results['follows'][] = [
+                            'user_id' => $followData['user_id'],
+                            'error' => $e->getMessage()
+                        ];
+                    }
                 }
             }
 
