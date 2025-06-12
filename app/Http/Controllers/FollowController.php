@@ -24,13 +24,36 @@ class FollowController extends Controller
     {
         try {
             $follower = auth()->user();
+
+            // Log para debugging
+            Log::info('Follow attempt', [
+                'follower_id' => $follower->id,
+                'following_id' => $user->id
+            ]);
+
+            // Usar el servicio para la lógica de follow
             $follow = $this->followService->follow($follower, $user);
+
+            // Log de notificación
+            Log::info('Creating follow notification', [
+                'user_id' => $user->id,
+                'type' => $follow->status === 'pending' ? 'follow_request' : 'new_follower',
+                'from_user_id' => $follower->id,
+                'follow_id' => $follow->id,
+                'message' => $follow->status === 'pending'
+                    ? "{$follower->name} quiere seguirte"
+                    : "{$follower->name} ha comenzado a seguirte"
+            ]);
+
             return ResponseHelper::success([
                 'status' => $follow->status,
                 'follow_id' => $follow->id
             ], $follow->status === 'pending' ? 'Solicitud enviada' : 'Siguiendo');
+
         } catch (\Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 400);
+            Log::error('Error in follow action: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return ResponseHelper::error('Error al procesar la solicitud: ' . $e->getMessage(), 400);
         }
     }
 
