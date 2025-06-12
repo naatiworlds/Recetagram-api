@@ -63,9 +63,10 @@ class AuthController extends Controller
         }
     }
 
-    public function show(User $user)
+    public function show($id)
     {
         try {
+            $user = User::findOrFail($id);
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Usuario recuperado exitosamente',
@@ -79,13 +80,19 @@ class AuthController extends Controller
                     'updated_at' => $user->updated_at,
                 ],
             ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Usuario no encontrado',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Error al recuperar el usuario'
-            ], 500)->header('Content-Type', 'application/json');
+                'message' => 'Error al recuperar el usuario',
+            ], 500);
         }
     }
+
 
     public function store(Request $request)
     {
@@ -142,6 +149,12 @@ class AuthController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No autenticado',
+                ], 401);
+            }
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Usuario recuperado exitosamente',
@@ -154,14 +167,15 @@ class AuthController extends Controller
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
                 ],
-            ], 200)->header('Content-Type', 'application/json');
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Error al recuperar el usuario'
-            ], 500)->header('Content-Type', 'application/json');
+                'message' => 'Error al recuperar el usuario',
+            ], 500);
         }
     }
+
     public function saveFcmToken(Request $request)
     {
         $request->validate([
@@ -189,7 +203,7 @@ class AuthController extends Controller
                 'message' => 'El token ya existe, no se ha duplicado',
             ], 200);
         }
- 
+
         // Agregar el token a la lista y guardar
         $existingTokens[] = $decodedToken;
         $user->notification_tokens = $existingTokens;
