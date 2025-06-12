@@ -75,25 +75,33 @@ class BatchController extends Controller
                 foreach ($data['comments'] as $commentData) {
                     $post = Post::find($commentData['post_id']);
                     if ($post) {
-                        $comment = $post->comments()->create([
-                            'content' => $commentData['content'],
-                            'user_id' => auth()->id(),
-                        ]);
-                        $results['comments'][] = $comment->id;
-
-                        // Crear notificación para el dueño del post
-                        if ($post->user_id !== auth()->id()) {
-                            $this->notificationService->createNotification(
-                                $post->user_id,
-                                'comment',
-                                auth()->id(),
-                                $post->id,
-                                'Nuevo comentario en tu post: ' . $comment->content
-                            );
+                        $existing = $post->comments()
+                            ->where('user_id', auth()->id())
+                            ->where('content', $commentData['content'])
+                            ->first();
+            
+                        if (!$existing) {
+                            $comment = $post->comments()->create([
+                                'content' => $commentData['content'],
+                                'user_id' => auth()->id(),
+                            ]);
+                            $results['comments'][] = $comment->id;
+            
+                            // Crear notificación solo si no es el mismo usuario
+                            if ($post->user_id !== auth()->id()) {
+                                $this->notificationService->createNotification(
+                                    $post->user_id,
+                                    'comment',
+                                    auth()->id(),
+                                    $post->id,
+                                    'Nuevo comentario en tu post: ' . $comment->content
+                                );
+                            }
                         }
                     }
                 }
             }
+            
 
             // Procesar notificaciones
             if (!empty($data['notifications'])) {
