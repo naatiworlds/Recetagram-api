@@ -19,15 +19,15 @@ class FollowService
     public function checkFollowStatus($followerId, $followingId)
     {
         Log::info("Checking follow status between {$followerId} and {$followingId}");
-        
+
         $follow = Follow::where('follower_id', $followerId)
             ->where('following_id', $followingId)
             ->first();
-            
+
         if (!$follow) {
             return ['status' => 'not_following'];
         }
-        
+
         return ['status' => $follow->status]; // 'pending' o 'accepted'
     }
 
@@ -37,35 +37,39 @@ class FollowService
             throw new \Exception('No puedes seguirte a ti mismo');
         }
 
-        $existingFollow = Follow::where('follower_id', $follower->id)
-            ->where('following_id', $userToFollow->id)
-            ->first();
-
-        if ($existingFollow) {
-            if ($existingFollow->status === 'accepted') {
-                throw new \Exception('Ya sigues a este usuario');
-            }
-            throw new \Exception('Ya tienes una solicitud pendiente');
-        }
-
         $status = $userToFollow->is_public ? 'accepted' : 'pending';
 
-        $follow = new Follow();
-        $follow->follower_id = $follower->id;
-        $follow->following_id = $userToFollow->id;
-        $follow->status = $status;
-        $follow->save();
-
-        // Notificación
-        $this->notificationService->createNotification(
-            $userToFollow->id,
-            $status === 'pending' ? 'follow_request' : 'new_follower',
-            $follower->id,
-            $follow->id,
-            $status === 'pending' 
-                ? "{$follower->name} quiere seguirte"
-                : "{$follower->name} ha comenzado a seguirte"
+        $follow = Follow::firstOrCreate(
+            [
+                'follower_id' => $follower->id,
+                'following_id' => $userToFollow->id,
+            ],
+            [
+                'status' => $status
+            ]
         );
+
+        // Si ya existía, podemos verificar estado para no duplicar notificaciones:
+        if ($follow->wasRecentlyCreated) {
+            // Notificación solo si es nuevo
+            $this->notificationService->createNotification(
+                $userToFollow->id,
+                $status === 'pending' ? 'follow_request' : 'new_follower',
+                $follower->id,
+                $follow->id,
+                $status === 'pending'
+                    ? "{$follower->name} quiere seguirte"
+                    : "{$follower->name} ha comenzado a seguirte"
+            );
+        } else {
+            // Ya existe follow, puedes lanzar excepción o devolver status actual
+            if ($follow->status === 'accepted') {
+                throw new \Exception('Ya sigues a este usuario');
+            }
+            if ($follow->status === 'pending') {
+                throw new \Exception('Ya tienes una solicitud pendiente');
+            }
+        }
 
         return $follow;
     }
