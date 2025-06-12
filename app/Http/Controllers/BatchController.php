@@ -120,6 +120,12 @@ class BatchController extends Controller
                             'status' => $follow->status,
                             'follow_id' => $follow->id
                         ];
+                    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                        Log::warning('Usuario no encontrado para follow: ' . $followData['user_id']);
+                        $results['follows'][] = [
+                            'user_id' => $followData['user_id'],
+                            'error' => 'Usuario no encontrado'
+                        ];
                     } catch (\Exception $e) {
                         $results['follows'][] = [
                             'user_id' => $followData['user_id'],
